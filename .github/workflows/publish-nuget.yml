@@ -1,0 +1,45 @@
+name: Publish NuGet Package
+
+# Trigger the workflow when a release is published
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest # You can change to windows-latest if needed
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Setup .NET SDK
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "6.0.x" # Adjust to your .NET version (e.g., 7.0.x, 8.0.x)
+
+      # Step 3: Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore src/WordTemplater/WordTemplater.csproj # Replace with your .csproj file
+
+      # Step 4: Publish the project
+      - name: Publish project
+        run: dotnet publish src/WordTemplater/WordTemplater.csproj -c Release # Replace with your .csproj file
+
+      # Step 5: Pack the NuGet package
+      - name: Pack NuGet package
+        run: |
+          # Use the release tag as the package version (e.g., v2.0.1 becomes 2.0.1)
+          VERSION=${{ github.event.release.tag_name }}
+          # Strip the 'v' prefix if present (e.g., v2.0.1 -> 2.0.1)
+          VERSION=${VERSION#v}
+          dotnet pack src/WordTemplater/WordTemplater.csproj -c Release -p:Version=$VERSION --output ./nupkg
+
+      # Step 6: Publish to NuGet
+      - name: Push to NuGet
+        run: |
+          dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}

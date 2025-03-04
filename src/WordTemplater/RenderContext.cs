@@ -97,10 +97,12 @@ namespace WordTemplater
         internal void RemoveAll()
         {
             if (_isRemoved) return;
+            var parentParagraph = StartNode.Ancestors<Paragraph>().FirstOrDefault();
             foreach(var el in _allElements)
             {
                 el.Remove();
             }
+            if (parentParagraph != null && parentParagraph.InnerText.Trim() == string.Empty) parentParagraph.Remove();
             _isRemoved = true;
         }
 

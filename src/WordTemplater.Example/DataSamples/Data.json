@@ -3,7 +3,7 @@
     "Text": "WordTemplater library.",
     "Phone": "0982608020",
     "Boolean": true,
-    "Toggle": false,
+    "Toggle": true,
     "Percent": 0.8512,
     "Date": "1987-05-20T00:00:00Z",
     "HTML": "Test <a href='https://google.com'>HTML</a> content.",

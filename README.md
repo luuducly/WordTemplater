@@ -26,7 +26,7 @@ Install-Package WordTemplater
     var avatarFile = File.ReadAllBytes("Templates\\Author.jpg");
     data["Image"] = Convert.ToBase64String(avatarFile);
     
-    var fileName = "Output.docx";
+    var exportedFileName = "Output.docx";
     using (var templateStream = File.OpenRead("Templates\\Template.docx"))
     {
         using (var wordTemplate = new WordTemplate(templateStream))
@@ -35,7 +35,7 @@ Install-Package WordTemplater
             wordTemplate.RegisterEvaluator("upperFirstLetter", new UpperCaseFirstLetter());
             using (var exportedStream = wordTemplate.Export(data))
             {
-                using (var output = File.Create(fileName))
+                using (var output = File.Create(exportedFileName))
                 {
                     exportedStream.CopyTo(output);
                 }
@@ -44,7 +44,7 @@ Install-Package WordTemplater
     }    
     
     var p = new Process();
-    p.StartInfo = new ProcessStartInfo(fileName)
+    p.StartInfo = new ProcessStartInfo(exportedFileName)
     {
        UseShellExecute = true
     };

@@ -585,7 +585,10 @@ namespace WordTemplater
                         var arrItem = arr[context.Index];
                         if (arrItem is JObject)
                         {
-                            FillData(context.ChildNodes, arrItem as JObject);
+                            var arrItemObject = arrItem as JObject;
+                            arrItemObject[Constant.CURRENT_INDEX] = context.Index;
+                            arrItemObject[Constant.IS_LAST] = (context.Index == arr.Count - 1);
+                            FillData(context.ChildNodes, arrItemObject);
                         }
                         else if (arrItem is JValue)
                         {

@@ -538,6 +538,7 @@ namespace WordTemplater
                     tableCell.Append(prg);
                 }
 
+                var parentParagraph = fieldTemplate.StartNode.Ancestors<WP.Paragraph>().FirstOrDefault();
                 if (forBeginning)
                 {
                     foreach (var item in fieldTemplate.GetAllElements(true))
@@ -554,6 +555,7 @@ namespace WordTemplater
                         prg.Append(item);
                     }
                 }
+                if (parentParagraph != null && parentParagraph.Parent != null && parentParagraph.InnerText.Trim() == string.Empty) parentParagraph.Remove();
             }
         }
 
@@ -598,8 +600,8 @@ namespace WordTemplater
                             jval[Constant.IS_LAST] = (context.Index == arr.Count - 1);
                             FillData(context.ChildNodes, jval);
                         }
-                        context.MergeField.StartField?.RemoveAll();
-                        context.MergeField.EndField?.RemoveAll();
+                        context.MergeField.StartField?.RemoveAll(true);
+                        context.MergeField.EndField?.RemoveAll(true);
                     }
                 }
                 else if (context.Evaluator is ConditionEvaluator)
@@ -613,8 +615,8 @@ namespace WordTemplater
                         var eval = context.Evaluator.Evaluate(jvalue, listParam);
                         if (string.Compare(true.ToString(), eval, StringComparison.OrdinalIgnoreCase) == 0)
                         {
-                            context.MergeField.StartField?.RemoveAll();
-                            context.MergeField.EndField?.RemoveAll();
+                            context.MergeField.StartField?.RemoveAll(true);
+                            context.MergeField.EndField?.RemoveAll(true);
                         }
                         else
                         {

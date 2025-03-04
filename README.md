@@ -14,6 +14,7 @@ Install-Package WordTemplater
 **2. Build-in many useful function and easy to customize more:** Formating, Repeating, Condition, Image, QrCode, BarCode, HTML, Document...<br/>
 
    ```csharp
+    using System.Diagnostics;
     ﻿using Newtonsoft.Json.Linq;
     using WordTemplater;
     using WordTemplater.Example;

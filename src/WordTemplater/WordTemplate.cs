@@ -376,72 +376,83 @@ namespace WordTemplater
         private void RenderTemplate(RenderContext rc, JArray arrData)
         {
             var template = GetRepeatingTemplate(rc);
-            List<OpenXmlElement> generatedNodes = new List<OpenXmlElement>();
-            generatedNodes.AddRange(template.TemplateElements);
-            for (int i = 1; i < arrData.Count; i++)
+            if (arrData.Count > 1)
             {
-                generatedNodes.AddRange(template.CloneAndAppendTemplate());
-            }
+                List<OpenXmlElement> generatedNodes = new List<OpenXmlElement>();
+                generatedNodes.AddRange(template.TemplateElements);
 
-            List<RenderContext> allContexts = PrepareRenderContext(generatedNodes, rc.MergeField.ParentPart);
-
-            var firstRC = Find(allContexts, rc);
-            if (firstRC != null)
-            {
-                if (firstRC.Parent != null)
+                for (int i = 1; i < arrData.Count; i++)
                 {
-                    allContexts = firstRC.Parent.ChildNodes;
+                    generatedNodes.AddRange(template.CloneAndAppendTemplate());
                 }
 
-                var firstIndex = allContexts.IndexOf(firstRC);
-                if (firstIndex >= 0)
+                List<RenderContext> allContexts = PrepareRenderContext(generatedNodes, rc.MergeField.ParentPart);
+
+                var firstRC = Find(allContexts, rc);
+                if (firstRC != null)
                 {
-                    var lastRC = rc;
-                    for (int j = 0; j < arrData.Count; j++)
+                    if (firstRC.Parent != null)
                     {
-                        var ct = allContexts[j + firstIndex];
-                        ct.Index = j;
-                        if (rc.Parent != null)
-                        {
-                            ct.Parent = rc.Parent;
-                            var pos = rc.Parent.ChildNodes.IndexOf(lastRC);
-                            if (pos > -1)
-                            {
-                                if (pos < rc.Parent.ChildNodes.Count - 1)
-                                    rc.Parent.ChildNodes.Insert(pos + 1, ct);
-                                else
-                                    rc.Parent.ChildNodes.Add(ct);
-                                lastRC = ct;
-                            }
-                        }
-                        else if (rc.Parent == null)
-                        {
-                            var pos = _renderContexts.IndexOf(lastRC);
-                            if (pos > -1)
-                            {
-                                if (pos < _renderContexts.Count - 1)
-                                    _renderContexts.Insert(pos + 1, ct);
-                                else
-                                    _renderContexts.Add(ct);
-                                lastRC = ct;
-                            }
-                        }
-                        var value = arrData[j];
-                        if (ct.ChildNodes.Count > 0)
-                            RenderTemplate(ct.ChildNodes.ToList(), value as JObject);
+                        allContexts = firstRC.Parent.ChildNodes;
                     }
 
-                    if (rc.Parent == null)
+                    var firstIndex = allContexts.IndexOf(firstRC);
+                    if (firstIndex >= 0)
                     {
-                        _renderContexts.Remove(rc);
-                    }
-                    else
-                    {
-                        rc.Parent.ChildNodes.Remove(rc);
-                        rc.Parent = null;
+                        var lastRC = rc;
+                        for (int j = 0; j < arrData.Count; j++)
+                        {
+                            var ct = allContexts[j + firstIndex];
+                            ct.Index = j;
+                            if (rc.Parent != null)
+                            {
+                                ct.Parent = rc.Parent;
+                                var pos = rc.Parent.ChildNodes.IndexOf(lastRC);
+                                if (pos > -1)
+                                {
+                                    if (pos < rc.Parent.ChildNodes.Count - 1)
+                                        rc.Parent.ChildNodes.Insert(pos + 1, ct);
+                                    else
+                                        rc.Parent.ChildNodes.Add(ct);
+                                    lastRC = ct;
+                                }
+                            }
+                            else if (rc.Parent == null)
+                            {
+                                var pos = _renderContexts.IndexOf(lastRC);
+                                if (pos > -1)
+                                {
+                                    if (pos < _renderContexts.Count - 1)
+                                        _renderContexts.Insert(pos + 1, ct);
+                                    else
+                                        _renderContexts.Add(ct);
+                                    lastRC = ct;
+                                }
+                            }
+                            var value = arrData[j];
+                            if (ct.ChildNodes.Count > 0)
+                                RenderTemplate(ct.ChildNodes.ToList(), value as JObject);
+                        }
+
+                        if (rc.Parent == null)
+                        {
+                            _renderContexts.Remove(rc);
+                        }
+                        else
+                        {
+                            rc.Parent.ChildNodes.Remove(rc);
+                            rc.Parent = null;
+                        }
                     }
                 }
             }
+            else if(arrData.Count == 0)
+            {
+                foreach(var el in template.TemplateElements)
+                {
+                    el.Remove();
+                }    
+            }    
         }
 
         private RepeatingTemplate GetRepeatingTemplate(RenderContext context)
@@ -492,6 +503,7 @@ namespace WordTemplater
                             lastChildNode = row;
                         }
                         lastCell = ((WP.TableRow)lastChildNode).Descendants<TableCell>().LastOrDefault();
+                        
                         MoveMergeFieldTo(context.MergeField.StartField, firstCell, true);
                         MoveMergeFieldTo(context.MergeField.EndField, lastCell, false);
                     }
@@ -584,29 +596,28 @@ namespace WordTemplater
                     if (value is JArray)
                     {
                         var arr = (JArray)value;
-                        var arrItem = arr[context.Index];
-                        if (arrItem is JObject)
+                        if (arr.Count > 0)
                         {
-                            var arrItemObject = arrItem as JObject;
-                            arrItemObject[Constant.CURRENT_INDEX] = context.Index + 1;
-                            arrItemObject[Constant.IS_LAST] = (context.Index == arr.Count - 1);
-                            FillData(context.ChildNodes, arrItemObject);
+                            var arrItem = arr[context.Index];
+                            if (arrItem is JObject)
+                            {
+                                FillData(context.ChildNodes, arrItem as JObject);
+                            }
+                            else if (arrItem is JValue)
+                            {
+                                var jval = new JObject();
+                                jval[Constant.CURRENT_NODE] = arrItem as JValue;
+                                jval[Constant.CURRENT_INDEX] = context.Index;
+                                jval[Constant.IS_LAST] = (context.Index == arr.Count - 1);
+                                FillData(context.ChildNodes, jval);
+                            }
+                            context.MergeField.StartField?.RemoveAll(true);
+                            context.MergeField.EndField?.RemoveAll(true);
                         }
-                        else if (arrItem is JValue)
-                        {
-                            var jval = new JObject();
-                            jval[Constant.CURRENT_NODE] = arrItem as JValue;
-                            jval[Constant.CURRENT_INDEX] = context.Index + 1;
-                            jval[Constant.IS_LAST] = (context.Index == arr.Count - 1);
-                            FillData(context.ChildNodes, jval);
-                        }
-                        context.MergeField.StartField?.RemoveAll(true);
-                        context.MergeField.EndField?.RemoveAll(true);
                     }
                 }
                 else if (context.Evaluator is ConditionEvaluator)
                 {
-                    var template = GetRepeatingTemplate(context);
                     if (value is JValue)
                     {
                         var jvalue = ((JValue)value).Value;
@@ -620,10 +631,9 @@ namespace WordTemplater
                         }
                         else
                         {
-                            foreach (var el in template.TemplateElements)
-                            {
-                                el.Remove();
-                            }
+                            var start = context.MergeField.StartField.GetAllElements()[0];
+                            var end = context.MergeField.EndField.GetAllElements(true)[0];
+                            RemoveFromNodeToNode(start, end);                            
                         }
                     }
                 }
@@ -684,10 +694,12 @@ namespace WordTemplater
                                     UpdateImageIdAndSize(imgElement, imageId, frame);
                                     imgElement = CreateNewDrawingElement(imgElement, frame);
                                 }
-                                context.MergeField.StartField.StartNode.InsertBeforeSelf(imgElement);
+                                var start = context.MergeField.StartField.GetAllElements()[0];
+                                start.InsertBeforeSelf(imgElement);
                             }
                         }
                     }
+                    context.MergeField.StartField.RemoveAll();
                 }
                 else if (context.Evaluator is HtmlEvaluator)
                 {
@@ -711,7 +723,7 @@ namespace WordTemplater
                             AltChunk altChunk = new AltChunk();
                             altChunk.Id = context.MergeField.ParentPart.GetIdOfPart(formatImportPart);
                             var node = context.MergeField.StartField?.RemoveAllExceptTextNode();
-                            if (node != null)
+                            if (node != null && node.Parent != null && node.Parent.Parent != null)
                             {
                                 node.Parent.InsertAfterSelf(new WP.Run(altChunk));
                                 node.Parent.Remove();
@@ -803,7 +815,7 @@ namespace WordTemplater
                             }
                         }
                     }
-                    context.MergeField.StartField?.RemoveAll();
+                    context.MergeField.StartField?.RemoveAll(true);
                 }
                 else
                 {
@@ -847,6 +859,121 @@ namespace WordTemplater
                     }
                 }
             }
+        }
+
+        private void RemoveFromNodeToNode(OpenXmlElement start, OpenXmlElement end)
+        {
+            OpenXmlElement lca = null, temp = null;
+            bool isFirstParent = false;
+            var currentNode = start;
+            while (currentNode != null)
+            {
+                if (currentNode == end || currentNode.Descendants().Any(n => n == end))
+                {
+                    lca = currentNode;
+                    break;
+                }
+
+                if (currentNode.InnerText.Trim() == string.Empty)
+                {
+                    temp = currentNode.NextSibling();
+                    if (temp != null)
+                    {
+                        currentNode.Remove();
+                        currentNode = temp;
+                    }
+                    else
+                    {
+                        temp = currentNode.Parent;
+                        currentNode.Remove();
+                        currentNode = temp;
+                        isFirstParent = true;
+                        continue;
+                    }
+                }  
+
+                while (currentNode != null)
+                {
+                    if (currentNode == end || currentNode.Descendants().Any(n => n == end))
+                    {
+                        lca = currentNode;
+                        break;
+                    }
+
+                    temp = currentNode.NextSibling();
+                    if (temp != null)
+                    {
+                        if(!isFirstParent)
+                            currentNode.Remove();
+                        currentNode = temp;
+                    }
+                    else
+                    {
+                        temp = currentNode.Parent;
+                        if (!isFirstParent)
+                            currentNode.Remove();
+                        currentNode = temp;
+                        isFirstParent = true;
+                        break;
+                    }
+                    isFirstParent = false;
+                }                
+            }
+
+            if (lca == null) return;
+
+            if (lca == end)
+            {
+                end.Remove();
+            }
+            else
+            {
+                currentNode = end;
+                isFirstParent = false;
+                while (currentNode != lca)
+                {
+                    if (currentNode.InnerText.Trim() == string.Empty)
+                    {
+                        temp = currentNode.PreviousSibling();
+                        if (temp != null)
+                        {
+                            currentNode.Remove();
+                            currentNode = temp;
+                        }
+                        else
+                        {
+                            temp = currentNode.Parent;
+                            currentNode.Remove();
+                            currentNode = temp;
+                            continue;
+                        }
+                    }
+
+                    while (currentNode != null)
+                    {
+                        temp = currentNode.PreviousSibling();
+                        if (temp != null)
+                        {
+                            if(!isFirstParent)
+                                currentNode.Remove();
+                            currentNode = temp;
+                        }
+                        else
+                        {
+                            temp = currentNode.Parent;
+                            if (!isFirstParent)
+                                currentNode.Remove();
+                            currentNode = temp;
+                            break;
+                        }
+                    }
+                }
+
+                if (lca.InnerText.Trim() == string.Empty)
+                {
+                    lca.Remove();
+                }
+            }    
         }
 
         private void RemoveFallbackElements(WordprocessingDocument document)

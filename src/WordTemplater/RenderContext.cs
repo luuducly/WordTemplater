@@ -98,9 +98,10 @@ namespace WordTemplater
         {
             if (_isRemoved) return;
             var parentParagraph = StartNode.Ancestors<Paragraph>().FirstOrDefault();
-            foreach(var el in _allElements)
+            foreach (var el in _allElements)
             {
-                el.Remove();
+                if(el.Parent != null)
+                    el.Remove();
             }
             if (deleteParent && parentParagraph != null && parentParagraph.Parent != null && parentParagraph.InnerText.Trim() == string.Empty)
             {
@@ -119,9 +120,13 @@ namespace WordTemplater
                 if(run != null)
                 {
                     _textNode = run.Descendants<WP.Text>().FirstOrDefault();
-                    run.Remove();
-                    _simpleField.InsertBeforeSelf(run);
-                    _simpleField.Remove();
+                    if(run.Parent != null)
+                        run.Remove();
+                    if (_simpleField.Parent != null)
+                    {
+                        _simpleField.InsertBeforeSelf(run);
+                        _simpleField.Remove();
+                    }
                 }    
             }
             else
@@ -131,9 +136,9 @@ namespace WordTemplater
                         if (_textNode == null)
                         {
                             _textNode = el.Descendants<WP.Text>().FirstOrDefault();
-                            if (_textNode == null) el.Remove();
+                            if (_textNode == null && el.Parent != null) el.Remove();
                         }
-                        else
+                        else if(el.Parent != null)
                             el.Remove();
                 }
             }

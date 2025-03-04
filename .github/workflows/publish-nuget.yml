@@ -62,6 +62,10 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore src/WordTemplater/WordTemplater.csproj # Replace with your .csproj file
 
+      # Step 4: Publish the project
+      - name: Publish project
+        run: dotnet publish src/WordTemplater/WordTemplater.csproj -c Release # Replace with your .csproj file
+
       # Step 4: Pack the GitHub package
       - name: Pack GitHub package
         run: |

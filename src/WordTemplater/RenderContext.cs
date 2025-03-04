@@ -94,7 +94,7 @@ namespace WordTemplater
             }
         }
 
-        internal void RemoveAll()
+        internal void RemoveAll(bool deleteParent = false)
         {
             if (_isRemoved) return;
             var parentParagraph = StartNode.Ancestors<Paragraph>().FirstOrDefault();
@@ -102,7 +102,11 @@ namespace WordTemplater
             {
                 el.Remove();
             }
-            if (parentParagraph != null && parentParagraph.InnerText.Trim() == string.Empty) parentParagraph.Remove();
+            if (deleteParent && parentParagraph != null && parentParagraph.Parent != null && parentParagraph.InnerText.Trim() == string.Empty)
+            {
+                if(parentParagraph.Parent.ChildElements.Count(c => c is Paragraph) > 1)
+                    parentParagraph.Remove();
+            }
             _isRemoved = true;
         }
 

@@ -586,7 +586,7 @@ namespace WordTemplater
                         if (arrItem is JObject)
                         {
                             var arrItemObject = arrItem as JObject;
-                            arrItemObject[Constant.CURRENT_INDEX] = context.Index;
+                            arrItemObject[Constant.CURRENT_INDEX] = context.Index + 1;
                             arrItemObject[Constant.IS_LAST] = (context.Index == arr.Count - 1);
                             FillData(context.ChildNodes, arrItemObject);
                         }
@@ -594,7 +594,7 @@ namespace WordTemplater
                         {
                             var jval = new JObject();
                             jval[Constant.CURRENT_NODE] = arrItem as JValue;
-                            jval[Constant.CURRENT_INDEX] = context.Index;
+                            jval[Constant.CURRENT_INDEX] = context.Index + 1;
                             jval[Constant.IS_LAST] = (context.Index == arr.Count - 1);
                             FillData(context.ChildNodes, jval);
                         }

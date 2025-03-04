@@ -4,29 +4,29 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-	<Version>2.0.2</Version>
-	<VersionPrefix>1.0.1</VersionPrefix>
-	<PackageReadmeFile>README.md</PackageReadmeFile>
+    <Version>2.0.2</Version>
+    <VersionPrefix>1.0.1</VersionPrefix>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
-	<RepositoryUrl>https://github.com/luuducly/WordTemplater</RepositoryUrl>
-	<FileVersion>1.0.0.0</FileVersion>
-	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Title>WordTemplater</Title>
-	<Authors>luuducly</Authors>
-	<Company />
-	<Description>- Format data with many build-in function (upper, lower, if, format:#,##0.00, MM/dd/yyyy...)
+    <RepositoryUrl>https://github.com/luuducly/WordTemplater</RepositoryUrl>
+    <FileVersion>1.0.0.0</FileVersion>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>WordTemplater</Title>
+    <Authors>luuducly</Authors>
+    <Company />
+    <Description>- Format data with many build-in function (upper, lower, if, format:#,##0.00, MM/dd/yyyy...)
  - Show or hide part of template with a condition
  - Repeat a part of template
  - Repeat a/multiple row of table
  - Insert from other document
  - Insert image, barcode, qrcode, rich text
  - Customizable new format and evaluate function</Description>
-	<Copyright>Copyright (c) Ly Luu Duc. MIT License.</Copyright>
-	<PackageProjectUrl>https://github.com/luuducly/WordTemplater</PackageProjectUrl>
-	<RepositoryType>git</RepositoryType>
-	<PackageReleaseNotes>See release notes at https://github.com/luuducly/WordTemplater/releases</PackageReleaseNotes>
-	<PackageTags>barcode-generator, openxml, qrcode-generator, autofill, word-template, export-word, formatting-data, mergefield, repeating-table, word, docx</PackageTags>
-	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Copyright (c) Ly Luu Duc. MIT License.</Copyright>
+    <PackageProjectUrl>https://github.com/luuducly/WordTemplater</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>See release notes at https://github.com/luuducly/WordTemplater/releases</PackageReleaseNotes>
+    <PackageTags>barcode-generator, openxml, qrcode-generator, autofill, word-template, export-word, formatting-data, mergefield, repeating-table, word, docx</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

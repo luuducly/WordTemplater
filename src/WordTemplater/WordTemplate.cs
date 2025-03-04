@@ -601,13 +601,16 @@ namespace WordTemplater
                             var arrItem = arr[context.Index];
                             if (arrItem is JObject)
                             {
-                                FillData(context.ChildNodes, arrItem as JObject);
+                                var arrItemJob = arrItem as JObject;
+                                arrItemJob[Constant.CURRENT_INDEX] = context.Index + 1;
+                                arrItemJob[Constant.IS_LAST] = (context.Index == arr.Count - 1);
+                                FillData(context.ChildNodes, arrItemJob);
                             }
                             else if (arrItem is JValue)
                             {
                                 var jval = new JObject();
                                 jval[Constant.CURRENT_NODE] = arrItem as JValue;
-                                jval[Constant.CURRENT_INDEX] = context.Index;
+                                jval[Constant.CURRENT_INDEX] = context.Index + 1;
                                 jval[Constant.IS_LAST] = (context.Index == arr.Count - 1);
                                 FillData(context.ChildNodes, jval);
                             }

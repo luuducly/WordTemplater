@@ -10,7 +10,7 @@ namespace WordTemplater
     {
         internal string FieldName { get; set; }
         internal MergeField MergeField { get; set; }
-        internal IEvaluator Evaluator { get; set; }
+        internal ITemplater Templater { get; set; }
         internal string Parameters { get; set; }
         internal string Operator { get; set; }
         internal RenderContext Parent { get; set; }
@@ -25,7 +25,7 @@ namespace WordTemplater
 
         public override string ToString()
         {
-            return FieldName + ":" + Evaluator.ToString() + ":" + Parameters;
+            return FieldName + ":" + Templater.ToString() + ":" + Parameters;
         }
     }
 

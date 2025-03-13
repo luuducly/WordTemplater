@@ -13,6 +13,7 @@ using DRAW = DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using System.Diagnostics;
 
 namespace WordTemplater
 {
@@ -83,66 +84,79 @@ namespace WordTemplater
     }
   }
 
+  [DebuggerDisplay("Custom Templater")]
   internal class CustomTemplater : Templater, ITemplater
   {
     internal CustomTemplater(IEvaluator evaluator) : base(evaluator) { }
   }
 
+  [DebuggerDisplay("Default Templater")]
   internal class DefaultTemplater : Templater, ITemplater
   {
     internal DefaultTemplater() : base(new DefaultEvaluator()) { }
   }
 
+  [DebuggerDisplay("Sub Templater")]
   internal class SubTemplater : Templater, ITemplater
   {
     internal SubTemplater() : base(new SubEvaluator()) { }
   }
 
+  [DebuggerDisplay("Left Templater")]
   internal class LeftTemplater : Templater, ITemplater
   {
     internal LeftTemplater() : base(new LeftEvaluator()) { }
   }
 
+  [DebuggerDisplay("Right Templater")]
   internal class RightTemplater : Templater, ITemplater
   {
     internal RightTemplater() : base(new RightEvaluator()) { }
   }
 
+  [DebuggerDisplay("Trim Templater")]
   internal class TrimTemplater : Templater, ITemplater
   {
     internal TrimTemplater() : base(new TrimEvaluator()) { }
   }
 
+  [DebuggerDisplay("Upper Templater")]
   internal class UpperTemplater : Templater, ITemplater
   {
     internal UpperTemplater() : base(new UpperEvaluator()) { }
   }
 
+  [DebuggerDisplay("Lower Templater")]
   internal class LowerTemplater : Templater, ITemplater
   {
     internal LowerTemplater() : base(new LowerEvaluator()) { }
   }
 
+  [DebuggerDisplay("Currency Templater")]
   internal class CurrencyTemplater : Templater, ITemplater
   {
     internal CurrencyTemplater() : base(new CurrencyEvaluator()) { }
   }
 
+  [DebuggerDisplay("Percentage Templater")]
   internal class PercentageTemplater : Templater, ITemplater
   {
     internal PercentageTemplater() : base(new PercentageEvaluator()) { }
   }
 
+  [DebuggerDisplay("Replace Templater")]
   internal class ReplaceTemplater : Templater, ITemplater
   {
     internal ReplaceTemplater() : base(new ReplaceEvaluator()) { }
   }
 
+  [DebuggerDisplay("If Templater")]
   internal class IfTemplater : Templater, ITemplater
   {
     internal IfTemplater() : base(new IfEvaluator()) { }
   }
 
+  [DebuggerDisplay("Condition Templater")]
   internal class ConditionTemplater : Templater, ITemplater
   {
     internal ConditionTemplater() : base(new ConditionEvaluator()) { }
@@ -170,6 +184,7 @@ namespace WordTemplater
     }
   }
 
+  [DebuggerDisplay("Loop Templater")]
   internal class LoopTemplater : Templater, ITemplater
   {
     internal LoopTemplater() : base(new LoopEvaluator()) { }
@@ -215,11 +230,13 @@ namespace WordTemplater
     }
   }
 
+  [DebuggerDisplay("Table Templater")]
   internal class TableTemplater : LoopTemplater, ITemplater
   {
     internal TableTemplater() : base(new TableEvaluator()) { }
   }
 
+  [DebuggerDisplay("Image Templater")]
   internal class ImageTemplater : Templater, ITemplater
   {
     internal ImageTemplater() : base(new ImageEvaluator()) { }
@@ -404,6 +421,7 @@ namespace WordTemplater
     }
   }
 
+  [DebuggerDisplay("BarCode Templater")]
   internal class BarCodeTemplater : ImageTemplater, ITemplater
   {
     internal BarCodeTemplater() : base(new BarCodeEvaluator()) { }
@@ -414,6 +432,7 @@ namespace WordTemplater
     internal QRCodeTemplater() : base(new QRCodeEvaluator()) { }
   }
 
+  [DebuggerDisplay("Html Templater")]
   internal class HtmlTemplater : Templater, ITemplater
   {
     internal HtmlTemplater() : base(new HtmlEvaluator()) { }
@@ -454,6 +473,7 @@ namespace WordTemplater
     }
   }
 
+  [DebuggerDisplay("Word Templater")]
   internal class WordTemplater : Templater, ITemplater
   {
     internal WordTemplater() : base(new WordEvaluator()) { }

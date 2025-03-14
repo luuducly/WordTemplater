@@ -310,43 +310,6 @@ namespace WordTemplater
     {
       throw new NotImplementedException();
     }
-
-    public void Process(JToken? value, RenderContext context)
-    {
-      if (value is JArray)
-      {
-        var arr = (JArray)value;
-        if (arr.Count > 0)
-        {
-          var arrItem = arr[context.Index];
-          if (arrItem is JObject)
-          {
-            var arrItemJob = arrItem as JObject;
-            arrItemJob[Constant.CURRENT_INDEX] = context.Index + 1;
-            arrItemJob[Constant.IS_LAST] = (context.Index == arr.Count - 1);
-            FillData(context.ChildNodes, arrItemJob);
-          }
-          else if (arrItem is JValue)
-          {
-            var jval = new JObject();
-            jval[Constant.CURRENT_NODE] = arrItem as JValue;
-            jval[Constant.CURRENT_INDEX] = context.Index + 1;
-            jval[Constant.IS_LAST] = (context.Index == arr.Count - 1);
-            FillData(context.ChildNodes, jval);
-          }
-          context.MergeField.StartField?.RemoveAll(true);
-          context.MergeField.EndField?.RemoveAll(true);
-        }
-      }
-    }
-
-    private void FillData(List<RenderContext> renderContexts, JObject data)
-    {
-      foreach (var context in renderContexts)
-      {
-        
-      }
-    }
   }
 
   internal class TableEvaluator : LoopEvaluator

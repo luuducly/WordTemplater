@@ -285,63 +285,45 @@ namespace WordTemplater
             var function = fmtContent.Trim().ToLower();
             if (function == FunctionName.If)
             {
-              context.Templater = new ConditionTemplater();
+              string op;
               if (paramContent.IndexOf(OperatorName.Geq) > 0)
               {
-                var sptContent = paramContent.Split(OperatorName.Geq);
-                context.FieldName = sptContent[0].Trim();
-                context.Operator = OperatorName.Geq;
-                context.Parameters = sptContent[1].Trim();
+                op = OperatorName.Geq;
               }
               else if (paramContent.IndexOf(OperatorName.Leq) > 0)
               {
-                var sptContent = paramContent.Split(OperatorName.Leq);
-                context.FieldName = sptContent[0].Trim();
-                context.Operator = OperatorName.Leq;
-                context.Parameters = sptContent[1].Trim();
+                op = OperatorName.Leq;
               }
               else if (paramContent.IndexOf(OperatorName.Neq1) > 0)
               {
-                var sptContent = paramContent.Split(OperatorName.Neq1);
-                context.FieldName = sptContent[0].Trim();
-                context.Operator = OperatorName.Neq1;
-                context.Parameters = sptContent[1].Trim();
+                op = OperatorName.Neq1;
               }
               else if (paramContent.IndexOf(OperatorName.Neq2) > 0)
               {
-                var sptContent = paramContent.Split(OperatorName.Neq2);
-                context.FieldName = sptContent[0].Trim();
-                context.Operator = OperatorName.Neq2;
-                context.Parameters = sptContent[1].Trim();
+                op = OperatorName.Neq2;
               }
               else if (paramContent.IndexOf(OperatorName.Gt) > 0)
               {
-                var sptContent = paramContent.Split(OperatorName.Gt);
-                context.FieldName = sptContent[0].Trim();
-                context.Operator = OperatorName.Gt;
-                context.Parameters = sptContent[1].Trim();
+                op = OperatorName.Gt;
               }
               else if (paramContent.IndexOf(OperatorName.Lt) > 0)
               {
-                var sptContent = paramContent.Split(OperatorName.Lt);
-                context.FieldName = sptContent[0].Trim();
-                context.Operator = OperatorName.Lt;
-                context.Parameters = sptContent[1].Trim();
+                op = OperatorName.Lt;
               }
               else if (paramContent.IndexOf(OperatorName.Eq1) > 0)
               {
-                var sptContent = paramContent.Split(OperatorName.Eq1);
-                context.FieldName = sptContent[0].Trim();
-                context.Operator = OperatorName.Eq1;
-                context.Parameters = sptContent[1].Trim();
+                op = OperatorName.Eq1;
               }
               else if (paramContent.IndexOf(OperatorName.Eq2) > 0)
               {
-                var sptContent = paramContent.Split(OperatorName.Eq2);
-                context.FieldName = sptContent[0].Trim();
-                context.Operator = OperatorName.Eq2;
-                context.Parameters = sptContent[1].Trim();
+                op = OperatorName.Eq2;
               }
+              else return;
+
+              var sptContent = paramContent.Split(op);
+              context.FieldName = sptContent[0].Trim();
+              context.Parameters = sptContent[1].Trim();
+              context.Templater = new ConditionTemplater(op);
             }
             else if (function == FunctionName.Loop)
             {

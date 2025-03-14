@@ -164,7 +164,11 @@ namespace WordTemplater
   [DebuggerDisplay("[Condition Templater]")]
   internal class ConditionTemplater : Templater, ITemplater
   {
-    internal ConditionTemplater() : base(new ConditionEvaluator()) { }
+    internal string _operator { get; set; }
+    internal ConditionTemplater(string op) : base(new ConditionEvaluator())
+    {
+      _operator = op;
+    }
 
     void ITemplater.FillData(JToken? value, RenderContext context)
     {
@@ -172,7 +176,7 @@ namespace WordTemplater
       {
         var jvalue = ((JValue)value).Value;
         var listParam = Utils.PaserParametters(context.Parameters);
-        listParam.Insert(0, context.Operator);
+        listParam.Insert(0, _operator);
         var eval = _evaluator.Evaluate(jvalue, listParam);
         if (string.Compare(true.ToString(), eval, StringComparison.OrdinalIgnoreCase) == 0)
         {
@@ -408,7 +412,7 @@ namespace WordTemplater
             new DRAW.Extents() { Cx = WordUtils.PixelToEmu(size.Width), Cy = WordUtils.PixelToEmu(size.Height) }),
           new DRAW.PresetGeometry(
             new DRAW.AdjustValueList())
-          { 
+          {
             Preset = type
           }));
       return element;

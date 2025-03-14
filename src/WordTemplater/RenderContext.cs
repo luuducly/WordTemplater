@@ -14,7 +14,6 @@ namespace WordTemplater
     internal MergeField MergeField { get; set; }
     internal ITemplater Templater { get; set; }
     internal string Parameters { get; set; }
-    internal string Operator { get; set; }
     internal RenderContext Parent { get; set; }
     internal int Index { get; set; }
     internal List<RenderContext> ChildNodes { get; set; }

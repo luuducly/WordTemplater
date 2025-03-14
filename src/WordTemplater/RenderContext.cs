@@ -166,6 +166,8 @@ namespace WordTemplater
       }
       return null;
     }
+
+    internal OpenXmlElement RootNode => _allElements[0];
   }
 
   internal class RepeatingTemplate

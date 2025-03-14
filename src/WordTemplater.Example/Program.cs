@@ -11,6 +11,9 @@ data["Word"] = Convert.ToBase64String(equationFile);
 var avatarFile = File.ReadAllBytes("Templates\\Author.jpg");
 data["Image"] = Convert.ToBase64String(avatarFile);
 
+var rectangleImg = File.ReadAllBytes("Templates\\Rectangle.png");
+data["RectImage"] = Convert.ToBase64String(rectangleImg);
+
 var exportedFileName = "Output.docx";
 using (var templateStream = File.OpenRead("Templates\\Template.docx"))
 {

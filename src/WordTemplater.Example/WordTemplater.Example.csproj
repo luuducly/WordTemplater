@@ -24,6 +24,9 @@
     <None Update="Templates\Author.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Templates\Rectangle.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Templates\Equation.docx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

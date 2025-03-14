@@ -14,6 +14,11 @@ using DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Diagnostics;
+using DocumentFormat.OpenXml.Vml;
+using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.InkML;
+using System.IO;
+using System.Xml;
 
 namespace WordTemplater
 {
@@ -241,7 +246,7 @@ namespace WordTemplater
   {
     internal ImageTemplater() : base(new ImageEvaluator()) { }
 
-    internal ImageTemplater(IEvaluator evaluator) : base (evaluator) { }
+    internal ImageTemplater(IEvaluator evaluator) : base(evaluator) { }
 
     void ITemplater.FillData(JToken? value, RenderContext context)
     {
@@ -252,87 +257,97 @@ namespace WordTemplater
         {
           var base64Img = _evaluator.Evaluate(jvalue.ToString(), null);
           var stream = new MemoryStream(Convert.FromBase64String(base64Img));
+
           var drawing = context.MergeField.StartField.StartNode.Ancestors<WP.Drawing>().FirstOrDefault();
+          OpenXmlElement imageParentElement = null;
+          Size displaySize = null;
+          SourceRectangle sourceRectangle = null;
+          ShapeTypeValues shapeType = ShapeTypeValues.Rectangle;
           if (drawing != null)
           {
             var run = drawing.Ancestors<WP.Run>().FirstOrDefault();
-
             DRAW.GraphicData graphicData = null;
-            Size frame = GetShapeSize(drawing.Descendants<DRAW.Extents>().FirstOrDefault());
-            if (frame == null) frame = Utils.GetImageSize(stream);
-            if (frame != null)
-            {
-              WP.Run? pRun = drawing.Ancestors<WP.Run>().FirstOrDefault();
-              if (pRun != null)
-              {
-                graphicData = drawing?.Descendants<DRAW.GraphicData>().FirstOrDefault();
-                if (graphicData != null)
-                {
-                  graphicData.RemoveAllChildren();
-                  graphicData.Uri = Constant.PICTURE_NAMESPACE;
-                }
-              }
-            }
-
-            var imgElement = CreateNewPictureElement(Guid.NewGuid().ToString(), 0, 0);
-            var imagePart = AddImagePart(context.MergeField.ParentPart);
-            var imageId = context.MergeField.ParentPart.GetIdOfPart(imagePart);
-            imagePart.FeedData(stream);
-            UpdateImageIdAndSize(imgElement, imageId, frame);
+            displaySize = GetShapeSize(drawing.Descendants<DRAW.Extents>().FirstOrDefault());
+            if (displaySize == null) displaySize = WordUtils.GetImageSize(stream);
+            if (displaySize == null)
+              goto DONE;
+            graphicData = drawing.Descendants<DRAW.GraphicData>().FirstOrDefault();
             if (graphicData != null)
             {
-              graphicData.Append(imgElement);
+              var geometry = graphicData.Descendants<PresetGeometry>().FirstOrDefault();
+              if (geometry != null && geometry.Preset.HasValue)
+              {
+                shapeType = geometry.Preset.Value;
+              }
+              graphicData.RemoveAllChildren();
+              graphicData.Uri = Constant.PICTURE_NAMESPACE;
+              imageParentElement = graphicData;
             }
-            else if (run != null)
+            else
             {
-              run.Append(imgElement);
+              if (run == null)
+                goto DONE;
+              imageParentElement = run;
             }
+            Size originalSize = WordUtils.GetImageSize(stream);
+            double ratio = Math.Max((double)displaySize.Width / originalSize.Width, (double)displaySize.Height / originalSize.Height);
+            Size newImageSize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
+            int percentVertical = WordUtils.ToThousandPercent((double)(newImageSize.Height - displaySize.Height) / 2 / newImageSize.Height * 100),
+              percentHorizontal = WordUtils.ToThousandPercent((double)(newImageSize.Width - displaySize.Width) / 2 / newImageSize.Width * 100);
+            sourceRectangle = new SourceRectangle();
+            if (percentHorizontal > 0)
+              sourceRectangle.Left = sourceRectangle.Right = percentHorizontal;
+            if (percentVertical > 0)
+              sourceRectangle.Top = sourceRectangle.Bottom = percentVertical;
           }
           else
           {
-            OpenXmlElement imgElement = CreateNewPictureElement(Guid.NewGuid().ToString(), 0, 0);
-            var frame = Utils.GetImageSize(stream);
-            if (frame != null)
+            Size originalSize = WordUtils.GetImageSize(stream);
+            double? percent = GetPercent(context.Parameters);
+            if (percent.HasValue)
             {
-              var imagePart = AddImagePart(context.MergeField.ParentPart);
-              var imageId = context.MergeField.ParentPart.GetIdOfPart(imagePart);
-              imagePart.FeedData(stream);
-              UpdateImageIdAndSize(imgElement, imageId, frame);
-              imgElement = CreateNewDrawingElement(imgElement, frame);
+              (double width, double height) = WordUtils.GetPageSize(context.MergeField.StartField.StartNode);
+              double imageWidth = width * percent.Value, imageHeight = height * percent.Value;
+              double ratio = Math.Min(imageWidth / originalSize.Width, imageHeight / originalSize.Height);
+              displaySize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
             }
-            var start = context.MergeField.StartField.GetAllElements()[0];
-            start.InsertBeforeSelf(imgElement);
+            else
+            {
+              displaySize = originalSize;
+            }
+            (OpenXmlElement drawingElement, OpenXmlElement graphicDataElement) = CreateNewGraphicElement(displaySize);
+            imageParentElement = graphicDataElement;
+            context.MergeField.StartField.RootNode.InsertBeforeSelf(drawingElement);
           }
+          var imgElement = CreateNewPictureElement(stream, context.MergeField.ParentPart, displaySize, shapeType, sourceRectangle);
+          imageParentElement.Append(imgElement);
         }
       }
+    DONE:
       context.MergeField.StartField.RemoveAll();
     }
 
     private ImagePart AddImagePart(TypedOpenXmlPart parentPart)
     {
-      ImagePart imagePart = null;
-      if (parentPart is HeaderPart)
+      switch (parentPart)
       {
-        imagePart = ((HeaderPart)parentPart).AddImagePart(ImagePartType.Png);
+        case HeaderPart headerPart:
+          return headerPart.AddImagePart(ImagePartType.Png);
+        case FooterPart footerPart:
+          return footerPart.AddImagePart(ImagePartType.Png);
       }
-      else if (parentPart is MainDocumentPart)
-      {
-        imagePart = ((MainDocumentPart)parentPart).AddImagePart(ImagePartType.Png);
-      }
-      else if (parentPart is FooterPart)
-      {
-        imagePart = ((FooterPart)parentPart).AddImagePart(ImagePartType.Png);
-      }
-      return imagePart;
+      return ((MainDocumentPart)parentPart).AddImagePart(ImagePartType.Png);
     }
 
-    private OpenXmlElement CreateNewDrawingElement(OpenXmlElement image, Size size)
+    private (OpenXmlElement drawingElement, OpenXmlElement graphicDataElement) CreateNewGraphicElement(Size size)
     {
       string name = Guid.NewGuid().ToString();
+      DRAW.GraphicData graphicDataElement = new DRAW.GraphicData();
+      graphicDataElement.Uri = Constant.PICTURE_NAMESPACE;
       var element =
           new WP.Drawing(
               new Inline(
-                  new Extent() { Cx = size.Width, Cy = size.Height },
+                  new Extent() { Cx = WordUtils.PixelToEmu(size.Width), Cy = WordUtils.PixelToEmu(size.Height) },
                   new EffectExtent()
                   {
                     LeftEdge = 0L,
@@ -347,12 +362,7 @@ namespace WordTemplater
                   },
                   new DRAW.NonVisualGraphicFrameDrawingProperties(
                       new DRAW.GraphicFrameLocks() { NoChangeAspect = true }),
-                  new DRAW.Graphic(
-                      new DRAW.GraphicData(
-                              image
-                          )
-                      { Uri = Constant.PICTURE_NAMESPACE })
-              )
+                  new DRAW.Graphic(graphicDataElement))
               {
                 DistanceFromTop = 0U,
                 DistanceFromBottom = 0U,
@@ -360,52 +370,48 @@ namespace WordTemplater
                 DistanceFromRight = 0U,
                 EditId = Utils.GetRandomHexNumber(8)
               });
-      return element;
+      return (element, graphicDataElement);
     }
 
-    private PIC.Picture CreateNewPictureElement(string fileName, long width, long height)
+    private PIC.Picture CreateNewPictureElement(MemoryStream stream, TypedOpenXmlPart parentPart, Size size, ShapeTypeValues type, SourceRectangle sourceRect = null)
     {
-      return new PIC.Picture(
-          new PIC.NonVisualPictureProperties(
-              new PIC.NonVisualDrawingProperties()
-              {
-                Id = Utils.GetUintId(),
-                Name = string.Format(Constant.DEFAULT_IMAGE_FILE_NAME, fileName)
-              },
-              new PIC.NonVisualPictureDrawingProperties()),
-          new PIC.BlipFill(
-              new DRAW.Blip(
-                  new DRAW.BlipExtensionList()
-              )
-              {
-                CompressionState =
-                      DRAW.BlipCompressionValues.Print
-              },
-              new DRAW.Stretch(
-                  new DRAW.FillRectangle())),
-          new PIC.ShapeProperties(
-              new DRAW.Transform2D(
-                  new DRAW.Offset() { X = 0L, Y = 0L },
-                  new DRAW.Extents() { Cx = width, Cy = height }),
-              new DRAW.PresetGeometry(
-                      new DRAW.AdjustValueList()
-                  )
-              { Preset = DRAW.ShapeTypeValues.Rectangle }));
-    }
-
-    private void UpdateImageIdAndSize(OpenXmlElement element, string imageId, Size size)
-    {
-      if (element != null)
+      var imagePart = AddImagePart(parentPart);
+      var imageId = parentPart.GetIdOfPart(imagePart);
+      imagePart.FeedData(stream);
+      PIC.BlipFill blipFill = new PIC.BlipFill(
+          new DRAW.Blip(
+            new DRAW.BlipExtensionList())
+          {
+            CompressionState = DRAW.BlipCompressionValues.Print,
+            Embed = imageId
+          })
       {
-        var blip = element.Descendants<DRAW.Blip>().FirstOrDefault();
-        if (blip != null) blip.Embed = imageId;
-        var extents = element.Descendants<DRAW.Extents>().FirstOrDefault();
-        if (extents != null)
-        {
-          extents.Cx = size.Width;
-          extents.Cy = size.Height;
-        }
+        RotateWithShape = true
+      };
+      if (sourceRect != null)
+      {
+        blipFill.Append(sourceRect);
       }
+      blipFill.Append(new DRAW.Stretch());
+      PIC.Picture element = new PIC.Picture(
+        new PIC.NonVisualPictureProperties(
+          new PIC.NonVisualDrawingProperties()
+          {
+            Id = Utils.GetUintId(),
+            Name = string.Format(Constant.DEFAULT_IMAGE_FILE_NAME, Guid.NewGuid().ToString())
+          },
+          new PIC.NonVisualPictureDrawingProperties()),
+        blipFill,
+        new PIC.ShapeProperties(
+          new DRAW.Transform2D(
+            new DRAW.Offset() { X = 0L, Y = 0L },
+            new DRAW.Extents() { Cx = WordUtils.PixelToEmu(size.Width), Cy = WordUtils.PixelToEmu(size.Height) }),
+          new DRAW.PresetGeometry(
+            new DRAW.AdjustValueList())
+          { 
+            Preset = type
+          }));
+      return element;
     }
 
     private Size GetShapeSize(DRAW.Extents extents)
@@ -415,9 +421,67 @@ namespace WordTemplater
         Int64Value? w = extents.Cx;
         Int64Value? h = extents.Cy;
         if (w.HasValue && h.HasValue)
-          return new Size(w.Value, h.Value);
+          return new Size((long)WordUtils.EmuToPixels(w.Value), (long)WordUtils.EmuToPixels(h.Value));
       }
       return null;
+    }
+
+    private double? GetPercent(string parameters)
+    {
+      if (parameters == null)
+        return null;
+      parameters = parameters.Trim();
+      if (parameters.Length == 0)
+        return null;
+      return Utils.GetDouble(parameters);
+    }
+
+    private DRAW.ShapeTypeValues GetEnumShapeType(string shapeType)
+    {
+      switch (shapeType)
+      {
+        case "line": return ShapeTypeValues.Line;
+        case "lineInv": return ShapeTypeValues.LineInverse;
+        case "triangle": return ShapeTypeValues.Triangle;
+        case "rtTriangle": return ShapeTypeValues.RightTriangle;
+        case "rect": return ShapeTypeValues.Rectangle;
+        case "diamond": return ShapeTypeValues.Diamond;
+        case "parallelogram": return ShapeTypeValues.Parallelogram;
+        case "trapezoid": return ShapeTypeValues.Trapezoid;
+        case "nonIsoscelesTrapezoid": return ShapeTypeValues.NonIsoscelesTrapezoid;
+        case "pentagon": return ShapeTypeValues.Pentagon;
+        case "hexagon": return ShapeTypeValues.Hexagon;
+        case "heptagon": return ShapeTypeValues.Heptagon;
+        case "octagon": return ShapeTypeValues.Octagon;
+        case "decagon": return ShapeTypeValues.Decagon;
+        case "dodecagon": return ShapeTypeValues.Dodecagon;
+        case "star4": return ShapeTypeValues.Star4;
+        case "star5": return ShapeTypeValues.Star5;
+        case "star6": return ShapeTypeValues.Star6;
+        case "star7": return ShapeTypeValues.Star7;
+        case "star8": return ShapeTypeValues.Star8;
+        case "star10": return ShapeTypeValues.Star10;
+        case "star12": return ShapeTypeValues.Star12;
+        case "star16": return ShapeTypeValues.Star16;
+        case "star24": return ShapeTypeValues.Star24;
+        case "star32": return ShapeTypeValues.Star32;
+        case "roundRect": return ShapeTypeValues.RoundRectangle;
+        case "round1Rect": return ShapeTypeValues.Round1Rectangle;
+        case "round2SameRect": return ShapeTypeValues.Round2SameRectangle;
+        case "round2DiagRect": return ShapeTypeValues.Round2DiagonalRectangle;
+        case "snipRoundRect": return ShapeTypeValues.SnipRoundRectangle;
+        case "snip1Rect": return ShapeTypeValues.Snip1Rectangle;
+        case "snip2SameRect": return ShapeTypeValues.Snip2SameRectangle;
+        case "snip2DiagRect": return ShapeTypeValues.Snip2DiagonalRectangle;
+        case "plaque": return ShapeTypeValues.Plaque;
+        case "ellipse": return ShapeTypeValues.Ellipse;
+        case "teardrop": return ShapeTypeValues.Teardrop;
+        case "homePlate": return ShapeTypeValues.HomePlate;
+        case "chevron": return ShapeTypeValues.Chevron;
+        case "pieWedge": return ShapeTypeValues.PieWedge;
+        case "pie": return ShapeTypeValues.Pie;
+        default: return ShapeTypeValues.Rectangle;
+      }
     }
   }
 

@@ -1,10 +1,13 @@
 ﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace WordTemplater
 {
@@ -168,6 +171,60 @@ namespace WordTemplater
           }
         }
       }
+    }
+
+    internal static (double width, double height) GetPageSize(OpenXmlElement element)
+    {
+      Body body = element.Ancestors<Body>().FirstOrDefault();
+      if (body == null)
+        return (0, 0);
+
+      SectionProperties sectionProps = body.Elements<SectionProperties>().FirstOrDefault();
+      if (sectionProps == null) return (0, 0);
+
+      PageSize pageSize = sectionProps.Elements<PageSize>().FirstOrDefault();
+      if (pageSize == null) return (0, 0);
+
+      return (TwipToPixels(pageSize.Width), TwipToPixels(pageSize.Height));
+    }
+
+    internal static Size GetImageSize(Stream stream)
+    {
+      stream.Position = 0;
+      var image = SKImage.FromEncodedData(stream);
+      stream.Position = 0;
+      if (image != null)
+      {
+        var width = image.Width;
+        var height = image.Height;
+        return new Size(width, height);
+      }
+      return null;
+    }
+
+    internal static Int64Value PixelToEmu(double pixel)
+    {
+      return (Int64Value)(pixel / Constant.DEFAULT_DPI * Constant.PIXEL_PER_INCH);
+    }
+
+    internal static double EmuToPixels(double emu)
+    {
+      return emu * Constant.DEFAULT_DPI / Constant.PIXEL_PER_INCH;
+    }
+
+    internal static double TwipToInches(double twip)
+    {
+      return twip / Constant.TWIP_PER_INCH;
+    }
+
+    internal static double TwipToPixels(double twip)
+    {
+      return twip / Constant.TWIP_PER_INCH * Constant.DEFAULT_DPI;
+    }
+
+    internal static int ToThousandPercent(double percent)
+    {
+      return (int)(percent * 1000);
     }
   }
 }

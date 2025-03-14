@@ -166,20 +166,6 @@ namespace WordTemplater
       return encoded.ToArray();
     }
 
-    internal static Size GetImageSize(Stream stream)
-    {
-      stream.Position = 0;
-      var image = SKImage.FromEncodedData(stream);
-      stream.Position = 0;
-      if (image != null)
-      {
-        var width = (long)(image.Width / Constant.DEFAULT_DPI * Constant.PIXEL_PER_INCH);
-        var height = (long)(image.Height / Constant.DEFAULT_DPI * Constant.PIXEL_PER_INCH);
-        return new Size(width, height);
-      }
-      return null;
-    }
-
     internal static List<string> GetAllRepeatProperties(JArray arr)
     {
       if (arr == null) return new List<string>();
@@ -245,6 +231,23 @@ namespace WordTemplater
         return newStream;
       }
       return null;
+    }
+
+    internal static int GetInt(string str, int? defaultValue = 0)
+    {
+      if (int.TryParse(str, out int result))
+        return result;
+      return defaultValue.Value;
+    }
+
+    internal static double? GetDouble(string str, double? defaultValue = null)
+    {
+      str = str.Trim();
+      if (string.IsNullOrEmpty(str))
+        return null;
+      if (double.TryParse(str, out double result))
+        return result;
+      return defaultValue;
     }
   }
 

@@ -1,61 +1,101 @@
 {
-    "Number": 1234.56789,
-    "Text": "WordTemplater library.",
-    "Phone": "0982608020",
-    "Boolean": true,
-    "Toggle": true,
-    "Percent": 0.8512,
-    "Date": "1987-05-20T00:00:00Z",
-    "HTML": "Test <a href='https://google.com'>HTML</a> content.",
-    "Barcode": "123-456-78",
-    "Qrcode": "https://github.com/luuducly/WordTemplater",
-    "ParaGraph": [
+    "items": [
         {
-            "Number": 1,
-            "Text": "The Open XML SDK simplifies the task of manipulating Open XML packages and the underlying Open XML schema elements within a package. The Open XML SDK encapsulates many common tasks that developers perform on Open XML packages, so that you can perform complex operations with just a few lines of code.",
-            "Array": [ 1, 2, 3, 4 ]
-        },
-        {
-            "Number": 2,
-            "Text": "The Open XML SDK simplifies the task of manipulating Open XML packages and the underlying Open XML schema elements within a package. The Open XML SDK encapsulates many common tasks that developers perform on Open XML packages, so that you can perform complex operations with just a few lines of code.",
-            "Array": [ 2, 3, 4 ]
-        },
-        {
-            "Number": 3,
-            "Text": "The Open XML SDK simplifies the task of manipulating Open XML packages and the underlying Open XML schema elements within a package. The Open XML SDK encapsulates many common tasks that developers perform on Open XML packages, so that you can perform complex operations with just a few lines of code.",
-            "Array": [ 3, 4 ]
-        }
-    ],
-    "Table": [
-        {
-            "Number": 1,
-            "Account": "LyLD0",
-            "Name": "lưu đức ly",
-            "DOB": "1987-05-20T00:00:00Z"
-        },
-        {
-            "Number": 2,
-            "Account": "LyLD2",
-            "Name": "lưu đức ly",
-            "DOB": "1988-05-20T00:00:00Z"
-        },
-        {
-            "Number": 3,
-            "Account": "LyLD4",
-            "Name": "lưu đức ly",
-            "DOB": "1989-05-20T00:00:00Z"
-        },
-        {
-            "Number": 4,
-            "Account": "LyLD6",
-            "Name": "lưu đức ly",
-            "DOB": "1990-05-20T00:00:00Z"
-        },
-        {
-            "Number": 5,
-            "Account": "LyLD1",
-            "Name": "lưu đức ly",
-            "DOB": "1991-05-20T00:00:00Z"
+            "title": "Quy trình tiếp nhận và xử lý thông tin đăng ký sử dụng HĐĐT (QT1.1.1) và Quy trình tiếp nhận và xử lý thông tin đăng ký sử dụng HĐĐT (QT1.1.2)",
+            "children": [
+                {
+                    "title": "Nhập dữ liệu thông tin đăng ký sử dụng HĐĐT (Mẫu 01/ĐKTĐ-HĐĐT)",
+                    "mermaid": "",
+                    "steps": [
+                        {
+                            "title": "NTT nhập mã số thuế đăng ký sử dụng trên cổng thông tin điện tử",
+                            "subtitle": [],
+                            "form": "NNT",
+                            "relatedClassAndMethod": [],
+                            "tableName": [],
+                            "description": "NTT nhập mã số thuế đăng ký sử dụng trên cổng thông tin điện tử",
+                            "change": ""
+                        },
+                        {
+                            "title": "Hệ thống kiểm tra mã số thuế của NTT nhập",
+                            "subtitle": [
+                                "Nếu thông tin mã số thuế không hợp lệ thì quay lại bước 1",
+                                "Nếu thông tin mã số thuế hợp lên thì thực hiện bước 3"
+                            ],
+                            "form": "Job java",
+                            "relatedClassAndMethod": [
+                                "hddt-registration/DeclarationPendingService.checkPendingTaxCode()"
+                            ],
+                            "tableName": [],
+                            "description": "Hàm hddt-registration/ DeclarationPendingService.checkPendingTaxCode()  gọi dịch vụ hddt-category để kiểm tra trạng thái MST của NNT và kiểm tra xem MST của NNT đã được đăng ký sử dụng hóa đơn điện tử chưa",
+                            "change": ""
+                        },
+                        {
+                            "title": "NTT nhập các thông tin khác, ký số và gửi đăng ký",
+                            "subtitle": [],
+                            "form": "NNT",
+                            "relatedClassAndMethod": [],
+                            "tableName": [],
+                            "description": "NTT nhập các thông tin khác, ký số và gửi đăng ký",
+                            "change": ""
+                        },
+                        {
+                            "title": "Hệ thống tiếp nhận thông tin lưu vào CSDL, gửi trả kết quả và gửi gói tin vào trục",
+                            "subtitle": [],
+                            "form": "",
+                            "relatedClassAndMethod": [
+                                "hddt-registration/DeclarationService.processNewRegistrationRecord()",
+                                "hddt-registration/KafkaProducer.sentToRegistrationTopic()"
+                            ],
+                            "tableName": [],
+                            "description": "Hàm hddt-registration/ DeclarationService.processNewRegistrationRecord() thực hiện lưu thông tin tờ khai vào CSDL sau đó gọi hàm hddt- registration/ KafkaProducer.sentToRegistrationTopic() gửi thông tin tờ khai lên trục",
+                            "change": ""
+                        }
+                    ]
+                },
+                {
+                    "title": "Điều chỉnh dữ liệu thông tin đăng ký sử dụng HĐĐT (Mẫu 01/ĐKTĐ-HĐĐT)",
+                    "mermaid": "",
+                    "steps": [
+                        {
+                            "title": "Hệ thống trả thông tin đăng ký trước đấy của NTT",
+                            "subtitle": [],
+                            "form": "Job java",
+                            "relatedClassAndMethod": [
+                                "hddt-registration/payerDeclarationService.getAdjustment()"
+                            ],
+                            "tableName": [
+                                "ks_dangky.hddt_dky"
+                            ],
+                            "description": "Hàm hddt-registration/ payerDeclarationService.getAdjustment() lấy thông tin đăng ký trước để hiển thị lên cho NNT",
+                            "change": ""
+                        },
+                        {
+                            "title": "NTT nhập các thông tin muốn thay đổi, ký số và gửi thay đổi đăng ký",
+                            "subtitle": [],
+                            "form": "NNT",
+                            "relatedClassAndMethod": [],
+                            "tableName": [],
+                            "description": "NTT nhập các thông tin muốn thay đổi, ký số và gửi thay đổi đăng ký",
+                            "change": ""
+                        },
+                        {
+                            "title": "Hệ thống tiếp nhận thông tin lưu vào CSDL, gửi trả kết quả và gửi gói tin vào trục",
+                            "subtitle": [],
+                            "form": "Job java",
+                            "relatedClassAndMethod": [
+                                "hddt-registration/ DeclarationService.processUpdateRegistrationRecord()",
+                                "hddt-registration/ KafkaProducer.sentToRegistrationTopic()"
+                            ],
+                            "tableName": [
+                                "ks_dangky.hddt_tkhai"
+                            ],
+                            "description": "Hàm hddt-registration/ DeclarationService.processUpdateRegistrationRecord() thực hiện lưu thông tin tờ khai vào CSDL sau đó gọi hàm hddt-registration/ KafkaProducer.sentToRegistrationTopic() gửi thông tin tờ khai lên trục",
+                            "change": ""
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

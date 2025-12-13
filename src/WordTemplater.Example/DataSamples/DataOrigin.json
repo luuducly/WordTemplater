@@ -1,0 +1,61 @@
+{
+    "Number": 1234.56789,
+    "Text": "WordTemplater library.",
+    "Phone": "0982608020",
+    "Boolean": true,
+    "Toggle": true,
+    "Percent": 0.8512,
+    "Date": "1987-05-20T00:00:00Z",
+    "HTML": "Test <a href='https://google.com'>HTML</a> content.",
+    "Barcode": "123-456-78",
+    "Qrcode": "https://github.com/luuducly/WordTemplater",
+    "ParaGraph": [
+        {
+            "Number": 1,
+            "Text": "The Open XML SDK simplifies the task of manipulating Open XML packages and the underlying Open XML schema elements within a package. The Open XML SDK encapsulates many common tasks that developers perform on Open XML packages, so that you can perform complex operations with just a few lines of code.",
+            "Array": [ 1, 2, 3, 4 ]
+        },
+        {
+            "Number": 2,
+            "Text": "The Open XML SDK simplifies the task of manipulating Open XML packages and the underlying Open XML schema elements within a package. The Open XML SDK encapsulates many common tasks that developers perform on Open XML packages, so that you can perform complex operations with just a few lines of code.",
+            "Array": [ 2, 3, 4 ]
+        },
+        {
+            "Number": 3,
+            "Text": "The Open XML SDK simplifies the task of manipulating Open XML packages and the underlying Open XML schema elements within a package. The Open XML SDK encapsulates many common tasks that developers perform on Open XML packages, so that you can perform complex operations with just a few lines of code.",
+            "Array": [ 3, 4 ]
+        }
+    ],
+    "Table": [
+        {
+            "Number": 1,
+            "Account": "LyLD0",
+            "Name": "lưu đức ly",
+            "DOB": "1987-05-20T00:00:00Z"
+        },
+        {
+            "Number": 2,
+            "Account": "LyLD2",
+            "Name": "lưu đức ly",
+            "DOB": "1988-05-20T00:00:00Z"
+        },
+        {
+            "Number": 3,
+            "Account": "LyLD4",
+            "Name": "lưu đức ly",
+            "DOB": "1989-05-20T00:00:00Z"
+        },
+        {
+            "Number": 4,
+            "Account": "LyLD6",
+            "Name": "lưu đức ly",
+            "DOB": "1990-05-20T00:00:00Z"
+        },
+        {
+            "Number": 5,
+            "Account": "LyLD1",
+            "Name": "lưu đức ly",
+            "DOB": "1991-05-20T00:00:00Z"
+        }
+    ]
+}

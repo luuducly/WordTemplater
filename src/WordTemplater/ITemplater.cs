@@ -47,44 +47,72 @@ namespace WordTemplater
 
     void ITemplater.FillData(JToken? value, RenderContext context)
     {
-      if (value is JValue)
+      if (value == null)
       {
-        var jvalue = ((JValue)value).Value;
-        if (jvalue != null)
+        context.MergeField.StartField?.RemoveAll();
+        return;
+      }
+
+      string eval = string.Empty;
+      ITemplater templater = context.Templater;
+
+      try
+      {
+        if (value is JValue jValue)
         {
-          string eval = "";
-          ITemplater templater = context.Templater;
-          if (templater != null)
+          var rawValue = jValue.Value;
+          if (rawValue != null)
           {
-            try
-            {
-              eval = templater.Evaluator.Evaluate(jvalue, templater.Evaluator is DefaultEvaluator ? new List<object>() { context.Parameters } : Utils.PaserParametters(context.Parameters));
-            }
-            catch
-            {
-              eval = jvalue.ToString();
-            }
-          }
-          else
-          {
-            eval = jvalue.ToString();
-          }
-
-          var textNode = context.MergeField.StartField?.RemoveAllExceptTextNode();
-          if (textNode != null)
-          {
-            textNode.Space = SpaceProcessingModeValues.Preserve;
-            textNode.Text = eval;
-          }
-          else
-          {
-
+            eval = EvaluateValue(rawValue, templater, context);
           }
         }
-        else
+        else if (value is JArray jArray)
         {
-          context.MergeField.StartField?.RemoveAll();
+          var values = jArray
+              .Select(v => v is JValue jv && jv.Value != null
+                  ? EvaluateValue(jv.Value, templater, context)
+                  : string.Empty)
+              .Where(s => !string.IsNullOrEmpty(s));
+
+          eval = string.Join(", ", values);
         }
+      }
+      catch
+      {
+        eval = value.ToString();
+      }
+
+      if (string.IsNullOrEmpty(eval))
+      {
+        context.MergeField.StartField?.RemoveAll();
+        return;
+      }
+
+      var textNode = context.MergeField.StartField?.RemoveAllExceptTextNode();
+      if (textNode != null)
+      {
+        textNode.Space = SpaceProcessingModeValues.Preserve;
+        textNode.Text = eval;
+      }
+    }
+
+    private static string EvaluateValue(object value, ITemplater templater, RenderContext context)
+    {
+      if (templater == null)
+        return value.ToString();
+
+      try
+      {
+        return templater.Evaluator.Evaluate(
+            value,
+            templater.Evaluator is DefaultEvaluator
+                ? new List<object> { context.Parameters }
+                : Utils.PaserParametters(context.Parameters)
+        );
+      }
+      catch
+      {
+        return value.ToString();
       }
     }
   }
@@ -172,23 +200,37 @@ namespace WordTemplater
 
     void ITemplater.FillData(JToken? value, RenderContext context)
     {
-      if (value is JValue)
+      string eval;
+      if (value is JValue jvalue)
       {
-        var jvalue = ((JValue)value).Value;
         var listParam = Utils.PaserParametters(context.Parameters);
         listParam.Insert(0, _operator);
-        var eval = _evaluator.Evaluate(jvalue, listParam);
-        if (string.Compare(true.ToString(), eval, StringComparison.OrdinalIgnoreCase) == 0)
-        {
-          context.MergeField.StartField?.RemoveAll(true);
-          context.MergeField.EndField?.RemoveAll(true);
-        }
-        else
-        {
-          var start = context.MergeField.StartField.GetAllElements()[0];
-          var end = context.MergeField.EndField.GetAllElements(true)[0];
-          WordUtils.RemoveFromNodeToNode(start, end);
-        }
+        eval = _evaluator.Evaluate(jvalue, listParam);
+      }
+      else if (value is JArray array)
+      {
+        var listParam = Utils.PaserParametters(context.Parameters);
+        listParam.Insert(0, _operator);
+        eval = _evaluator.Evaluate(array, listParam);
+      }
+      else
+      {
+        context.MergeField.StartField?.RemoveAll(true);
+        context.MergeField.EndField?.RemoveAll(true);
+        return;
+      }
+
+      if (string.Compare(true.ToString(), eval, StringComparison.OrdinalIgnoreCase) == 0)
+      {
+        context.MergeField.StartField?.RemoveAll(true);
+        context.MergeField.EndField?.RemoveAll(true);
+        LoopTemplater.FillData(context.ChildNodes, context.CurrentItem);
+      }
+      else
+      {
+        var start = context.MergeField.StartField.GetAllElements()[0];
+        var end = context.MergeField.EndField.GetAllElements(true)[0];
+        WordUtils.RemoveFromNodeToNode(start, end);
       }
     }
   }
@@ -234,6 +276,7 @@ namespace WordTemplater
       foreach (var context in renderContexts)
       {
         var value = data.GetValue(context.FieldName, StringComparison.OrdinalIgnoreCase);
+        context.CurrentItem = data;
         context.Templater?.FillData(value, context);
       }
     }

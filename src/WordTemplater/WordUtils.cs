@@ -15,6 +15,11 @@ namespace WordTemplater
   {
     internal static void RemoveFromNodeToNode(OpenXmlElement start, OpenXmlElement end)
     {
+      if (start.Parent != end.Parent)
+      {
+        start = start.Parent;
+        end = end.Parent;
+      }
       OpenXmlElement lca = null, temp = null;
       bool isFirstParent = false;
       var currentNode = start;

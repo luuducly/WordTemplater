@@ -267,7 +267,7 @@ namespace WordTemplater
 
         if (op != null)
         {
-          var cp = Utils.CompareObjects(fieldValue, compareValue);
+          var cp = Utils.CompareObjects(ResolveFieldValue(fieldValue), compareValue);
           switch (op)
           {
             case OperatorName.Eq1:
@@ -301,6 +301,23 @@ namespace WordTemplater
         }
       }
       return isCorrect.ToString();
+    }
+
+    private static object ResolveFieldValue(object fieldValue)
+    {
+      if (fieldValue == null)
+        return fieldValue;
+
+      if (fieldValue is JArray jArray)
+        return jArray.Count;
+
+      if (fieldValue is Array array)
+        return array.Length;
+
+      if (fieldValue is System.Collections.ICollection collection)
+        return collection.Count;
+
+      return fieldValue;
     }
   }
 

@@ -80,9 +80,14 @@ namespace WordTemplater
         System.Type type1 = obj1.GetType();
         System.Type type2 = obj2.GetType();
 
-        if (type1 != type2)
+        if (IsNumericType(type1) && IsNumericType(type2))
         {
-          return CompareValue.Lt | CompareValue.Gt;
+          decimal d1 = Convert.ToDecimal(obj1);
+          decimal d2 = Convert.ToDecimal(obj2);
+
+          if (d1 < d2) return CompareValue.Lt;
+          if (d1 > d2) return CompareValue.Gt;
+          return CompareValue.Eq;
         }
 
         if (obj1 is IComparable comparable1 && obj2 is IComparable comparable2)
@@ -105,6 +110,21 @@ namespace WordTemplater
       }
 
       return CompareValue.Lt | CompareValue.Gt;
+    }
+
+    private static bool IsNumericType(System.Type type)
+    {
+      return type == typeof(byte) ||
+             type == typeof(sbyte) ||
+             type == typeof(short) ||
+             type == typeof(ushort) ||
+             type == typeof(int) ||
+             type == typeof(uint) ||
+             type == typeof(long) ||
+             type == typeof(ulong) ||
+             type == typeof(float) ||
+             type == typeof(double) ||
+             type == typeof(decimal);
     }
 
     internal static Stream GetQRCodeImage(string data)

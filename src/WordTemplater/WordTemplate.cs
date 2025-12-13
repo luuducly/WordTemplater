@@ -169,14 +169,10 @@ namespace WordTemplater
         var mergeFieldNode = allMergeFieldNodes[i];
         var code = GetCode(mergeFieldNode);
 
-        if (code.Contains(FunctionName.EndIf, StringComparison.OrdinalIgnoreCase))
-        {
-          if (openContexts.Count > 0)
-            openContexts.Pop().MergeField.EndField = new MergeFieldTemplate(mergeFieldNode);
-          continue;
-        }
-
-        if (code.Contains(FunctionName.EndLoop, StringComparison.OrdinalIgnoreCase) || code.Contains(FunctionName.EndTable, StringComparison.OrdinalIgnoreCase))
+        if (code.Contains(FunctionName.EndLoop, StringComparison.OrdinalIgnoreCase)
+            || code.Contains(FunctionName.EndTable, StringComparison.OrdinalIgnoreCase)
+            || code.Contains(FunctionName.EndIf, StringComparison.OrdinalIgnoreCase)
+        )
         {
           if (parents.Count > 0)
             parents.Pop();
@@ -205,11 +201,15 @@ namespace WordTemplater
           IEvaluator evaluator = context.Templater.Evaluator;
           if (evaluator != null)
           {
-            if (evaluator is LoopEvaluator)
+            if (evaluator is LoopEvaluator || evaluator is ConditionEvaluator)
+            {
               parents.Push(context);
-            else if (evaluator is not ConditionEvaluator)
+              openContexts.Push(context);
+            }
+            else
+            {
               continue;
-            openContexts.Push(context);
+            }
           }
         }
       }
@@ -361,9 +361,16 @@ namespace WordTemplater
         foreach (var rc in renderContexts)
         {
           var value = dataObj.GetValue(rc.FieldName, StringComparison.OrdinalIgnoreCase);
-          if (rc.Templater != null && rc.Templater.Evaluator is LoopEvaluator && value is JArray && rc.MergeField.StartField != null && rc.MergeField.EndField != null)
+          if (rc.Templater != null && rc.MergeField.StartField != null && rc.MergeField.EndField != null)
           {
-            RenderTemplate(rc, (JArray)value);
+            if (rc.Templater.Evaluator is LoopEvaluator && value is JArray)
+            {
+              RenderTemplate(rc, (JArray)value);
+            }
+            else if (rc.Templater.Evaluator is ConditionEvaluator)
+            {
+              RenderTemplate(rc.ChildNodes.ToList(), dataObj);
+            }
           }
         }
       }
@@ -372,10 +379,16 @@ namespace WordTemplater
     private void RenderTemplate(RenderContext rc, JArray arrData)
     {
       var template = GetRepeatingTemplate(rc);
-      if (arrData.Count > 1)
+      if (arrData.Count == 0)
       {
-        List<OpenXmlElement> generatedNodes = new List<OpenXmlElement>();
-        generatedNodes.AddRange(template.TemplateElements);
+        foreach (var el in template.TemplateElements)
+        {
+          el.Remove();
+        }
+      }
+      else
+      {
+        List<OpenXmlElement> generatedNodes = new List<OpenXmlElement>(template.TemplateElements);
 
         for (int i = 1; i < arrData.Count; i++)
         {
@@ -440,13 +453,6 @@ namespace WordTemplater
               rc.Parent = null;
             }
           }
-        }
-      }
-      else if (arrData.Count == 0)
-      {
-        foreach (var el in template.TemplateElements)
-        {
-          el.Remove();
         }
       }
     }

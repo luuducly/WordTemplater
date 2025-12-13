@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using DocumentFormat.OpenXml;
 using WP = DocumentFormat.OpenXml.Wordprocessing;
 using System.Diagnostics;
+using Newtonsoft.Json.Linq;
 
 namespace WordTemplater
 {
@@ -18,6 +19,7 @@ namespace WordTemplater
     internal int Index { get; set; }
     internal List<RenderContext> ChildNodes { get; set; }
 
+    internal JObject CurrentItem { get; set; }
 
     public RenderContext()
     {

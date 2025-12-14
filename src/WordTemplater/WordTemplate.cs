@@ -55,6 +55,7 @@ namespace WordTemplater
       this.RegisterTemplater(FunctionName.BarCode, new BarCodeTemplater());
       this.RegisterTemplater(FunctionName.QRCode, new QRCodeTemplater());
       this.RegisterTemplater(FunctionName.Image, new ImageTemplater());
+      this.RegisterTemplater(FunctionName.Mermaid, new MermaidTemplater());
       this.RegisterTemplater(FunctionName.Html, new HtmlTemplater());
       this.RegisterTemplater(FunctionName.Word, new WordTemplater());
     }

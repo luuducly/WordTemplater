@@ -41,6 +41,7 @@ namespace WordTemplater
     internal const string BarCode = "barcode";
     internal const string QRCode = "qrcode";
     internal const string Image = "image";
+    internal const string Mermaid = "mermaid";
     internal const string Html = "html";
     internal const string Word = "word";
     internal const string Loop = "loop";

@@ -349,6 +349,34 @@ namespace WordTemplater
     }
   }
 
+  internal class MermaidEvaluator : ImageEvaluator
+  {
+    public override string Evaluate(object fieldValue, List<object> parameters)
+    {
+      if (fieldValue != null)
+      {
+        using var httpClient = new HttpClient();
+
+        var url = "https://kroki.io/mermaid/png";
+
+        using var content = new StringContent(
+            fieldValue.ToString(),
+            Encoding.UTF8,
+            "text/plain"
+        );
+
+        HttpResponseMessage response = httpClient.PostAsync(url, content).Result;
+
+        response.EnsureSuccessStatusCode();
+
+        // Kroki trả về ảnh PNG → đọc dưới dạng byte[]
+        byte[] imageBytes = response.Content.ReadAsByteArrayAsync().Result;
+        return Convert.ToBase64String(imageBytes);
+      }
+      return string.Empty;
+    }
+  }
+
   internal class BarCodeEvaluator : ImageEvaluator
   {
     public override string Evaluate(object fieldValue, List<object> parameters)

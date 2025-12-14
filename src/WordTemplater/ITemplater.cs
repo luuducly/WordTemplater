@@ -532,6 +532,11 @@ namespace WordTemplater
     }
   }
 
+  internal class MermaidTemplater : ImageTemplater, ITemplater
+  {
+    internal MermaidTemplater() : base(new MermaidEvaluator()) { }
+  }
+
   [DebuggerDisplay("[BarCode Templater]")]
   internal class BarCodeTemplater : ImageTemplater, ITemplater
   {

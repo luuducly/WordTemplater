@@ -5,7 +5,7 @@
             "children": [
                 {
                     "title": "Nhập dữ liệu thông tin đăng ký sử dụng HĐĐT (Mẫu 01/ĐKTĐ-HĐĐT)",
-                    "mermaid": "",
+                    "image": "flowchart TD\n    %% Cấu hình style chung\n    A(\"[1​. Bắt đầu]\")\n    D([Kết thúc])\n    A --> D\n    class A,D terminator;",
                     "steps": [
                         {
                             "title": "NTT nhập mã số thuế đăng ký sử dụng trên cổng thông tin điện tử",
@@ -55,7 +55,7 @@
                 },
                 {
                     "title": "Điều chỉnh dữ liệu thông tin đăng ký sử dụng HĐĐT (Mẫu 01/ĐKTĐ-HĐĐT)",
-                    "mermaid": "",
+                    "image": "flowchart TD\n    %% Cấu hình style chung\n    classDef terminator fill:#ffffff,stroke:#000000,stroke-width:1px;\n    classDef process fill:#ffffff,stroke:#000000,stroke-width:1px;\n\n    A([Bắt đầu])\n    B[\"1​. (HT) Chuẩn bị nội dung<br/>email gửi cho đơn vị khai thác<br/>dữ liệu HĐĐT trên cổng thông tin điện tử\"]\n    C[\"2​. (HT) Thực hiện gửi email<br/>cho đơn vị khai thác dữ liệu<br/>HĐĐT trên cổng thông tin điện tử\"]\n    D([Kết thúc])\n\n    A --> B --> C --> D\n\n    class A,D terminator;\n    class B,C process;\n",
                     "steps": [
                         {
                             "title": "Hệ thống trả thông tin đăng ký trước đấy của NTT",

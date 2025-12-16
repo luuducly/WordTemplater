@@ -302,18 +302,19 @@ namespace WordTemplater
         var jvalue = ((JValue)value).Value;
         if (jvalue != null)
         {
+          List<object> parameters = Utils.PaserParametters(context.Parameters);
           var base64Img = _evaluator.Evaluate(jvalue.ToString(), null);
           var stream = new MemoryStream(Convert.FromBase64String(base64Img));
 
           var drawing = context.MergeField.StartField.StartNode.Ancestors<WP.Drawing>().FirstOrDefault();
-          OpenXmlElement imageParentElement = null;
-          Size displaySize = null;
+          OpenXmlElement imageParentElement;
+          Size displaySize;
           SourceRectangle sourceRectangle = null;
           ShapeTypeValues shapeType = ShapeTypeValues.Rectangle;
           if (drawing != null)
           {
             var run = drawing.Ancestors<WP.Run>().FirstOrDefault();
-            DRAW.GraphicData graphicData = null;
+            DRAW.GraphicData graphicData;
             displaySize = GetShapeSize(drawing.Descendants<DRAW.Extents>().FirstOrDefault());
             if (displaySize == null) displaySize = WordUtils.GetImageSize(stream);
             if (displaySize == null)
@@ -339,8 +340,21 @@ namespace WordTemplater
             Size originalSize = WordUtils.GetImageSize(stream);
             double ratio = Math.Max((double)displaySize.Width / originalSize.Width, (double)displaySize.Height / originalSize.Height);
             Size newImageSize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
-            int percentVertical = WordUtils.ToThousandPercent((double)(newImageSize.Height - displaySize.Height) / 2 / newImageSize.Height * 100),
+            int percentVertical, percentHorizontal;
+            if (parameters.Count > 0 && parameters[0] is Boolean boolean && boolean)
+            {
+              var extent = drawing.Descendants<DRAW.Wordprocessing.Extent>().FirstOrDefault();
+              extent.Cx = WordUtils.PixelToEmu(newImageSize.Width);
+              extent.Cy = WordUtils.PixelToEmu(newImageSize.Height);
+              displaySize = newImageSize;
+              percentVertical = percentHorizontal = 0;
+            }
+            else
+            {
+              percentVertical = WordUtils.ToThousandPercent((double)(newImageSize.Height - displaySize.Height) / 2 / newImageSize.Height * 100);
               percentHorizontal = WordUtils.ToThousandPercent((double)(newImageSize.Width - displaySize.Width) / 2 / newImageSize.Width * 100);
+            }
+
             sourceRectangle = new SourceRectangle();
             if (percentHorizontal > 0)
               sourceRectangle.Left = sourceRectangle.Right = percentHorizontal;

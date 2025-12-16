@@ -339,10 +339,12 @@ namespace WordTemplater
             }
             Size originalSize = WordUtils.GetImageSize(stream);
             double ratio = Math.Max((double)displaySize.Width / originalSize.Width, (double)displaySize.Height / originalSize.Height);
-            Size newImageSize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
             int percentVertical, percentHorizontal;
             if (parameters.Count > 0 && parameters[0] is Boolean boolean && boolean)
             {
+              if (ratio > 1)
+                ratio = 1;
+              Size newImageSize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
               var extent = drawing.Descendants<DRAW.Wordprocessing.Extent>().FirstOrDefault();
               extent.Cx = WordUtils.PixelToEmu(newImageSize.Width);
               extent.Cy = WordUtils.PixelToEmu(newImageSize.Height);
@@ -351,6 +353,7 @@ namespace WordTemplater
             }
             else
             {
+              Size newImageSize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
               percentVertical = WordUtils.ToThousandPercent((double)(newImageSize.Height - displaySize.Height) / 2 / newImageSize.Height * 100);
               percentHorizontal = WordUtils.ToThousandPercent((double)(newImageSize.Width - displaySize.Width) / 2 / newImageSize.Width * 100);
             }

@@ -462,42 +462,71 @@ public partial class MainWindow : Window
 
     private static Run CreateTextShape(string fieldCode, double leftPt, double topPt, double widthPt, double heightPt, string fontColor = "0F172A", string fontSizeHalfPt = "22", bool bold = false, bool italic = false)
     {
-        var shape = new DocumentFormat.OpenXml.Vml.Shape
-        {
-            Id = "Shape_" + Guid.NewGuid().ToString("N"),
-            Style = $"position:absolute;margin-left:{leftPt:F1}pt;margin-top:{topPt:F1}pt;width:{widthPt:F1}pt;height:{heightPt:F1}pt;z-index:251658240;mso-position-horizontal:absolute;mso-position-vertical:absolute",
-            Filled = false,
-            Stroked = false
-        };
+        long xEmu = (long)(leftPt * 12700);
+        long yEmu = (long)(topPt * 12700);
+        long wEmu = (long)(widthPt * 12700);
+        long hEmu = (long)(heightPt * 12700);
 
-        var txbx = new DocumentFormat.OpenXml.Vml.TextBox
-        {
-            Style = "mso-fit-shape-to-text:t"
-        };
+        string boldXml = bold ? "<w:b/>" : "";
+        string italicXml = italic ? "<w:i/>" : "";
+        string colorXml = !string.IsNullOrEmpty(fontColor) ? $"<w:color w:val=\"{fontColor}\"/>" : "";
+        string szXml = !string.IsNullOrEmpty(fontSizeHalfPt) ? $"<w:sz w:val=\"{fontSizeHalfPt}\"/>" : "";
 
-        var runProps = new RunProperties();
-        if (bold) runProps.Append(new Bold());
-        if (italic) runProps.Append(new Italic());
-        if (!string.IsNullOrEmpty(fontColor)) runProps.Append(new Color { Val = fontColor });
-        if (!string.IsNullOrEmpty(fontSizeHalfPt)) runProps.Append(new FontSize { Val = fontSizeHalfPt });
+        uint shapeId = (uint)(Guid.NewGuid().GetHashCode() & 0x7FFFFFFF);
 
-        var field = F(fieldCode);
-        var innerRun = field.Descendants<Run>().FirstOrDefault();
-        if (innerRun != null)
-        {
-            innerRun.RunProperties = (RunProperties)runProps.CloneNode(true);
-        }
+        string drawingInnerXml = $@"<wp:anchor xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing""
+                    xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main""
+                    xmlns:wps=""http://schemas.microsoft.com/office/word/2010/wordprocessingShape""
+                    xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main""
+                    distT=""0"" distB=""0"" distL=""0"" distR=""0"" simplePos=""0"" relativeHeight=""251658240"" behindDoc=""0"" locked=""0"" layoutInCell=""1"" allowOverlap=""1"">
+  <wp:simplePos x=""0"" y=""0""/>
+  <wp:positionH relativeFrom=""column"">
+    <wp:posOffset>{xEmu}</wp:posOffset>
+  </wp:positionH>
+  <wp:positionV relativeFrom=""paragraph"">
+    <wp:posOffset>{yEmu}</wp:posOffset>
+  </wp:positionV>
+  <wp:extent cx=""{wEmu}"" cy=""{hEmu}""/>
+  <wp:effectExtent l=""0"" t=""0"" r=""0"" b=""0""/>
+  <wp:wrapNone/>
+  <wp:docPr id=""{shapeId}"" name=""TextShape_{shapeId}""/>
+  <wp:cNvGraphicFramePr/>
+  <a:graphic>
+    <a:graphicData uri=""http://schemas.microsoft.com/office/word/2010/wordprocessingShape"">
+      <wps:wsp>
+        <wps:cNvSpPr txBox=""1""/>
+        <wps:spPr>
+          <a:xfrm>
+            <a:off x=""0"" y=""0""/>
+            <a:ext cx=""{wEmu}"" cy=""{hEmu}""/>
+          </a:xfrm>
+          <a:prstGeom prst=""rect""><a:avLst/></a:prstGeom>
+          <a:noFill/>
+          <a:ln><a:noFill/></a:ln>
+        </wps:spPr>
+        <wps:txbx>
+          <w:txbxContent>
+            <w:p>
+              <w:pPr><w:spacing w:before=""0"" w:after=""0"" w:line=""240"" w:lineRule=""auto""/></w:pPr>
+              <w:fldSimple w:instr="" MERGEFIELD {fieldCode} \* MERGEFORMAT "">
+                <w:r>
+                  <w:rPr>{boldXml}{italicXml}{colorXml}{szXml}</w:rPr>
+                  <w:t>«{fieldCode}»</w:t>
+                </w:r>
+              </w:fldSimple>
+            </w:p>
+          </w:txbxContent>
+        </wps:txbx>
+        <wps:bodyPr rot=""0"" spcFirstLastPara=""0"" vertOverflow=""overflow"" horzOverflow=""overflow"" vert=""horz"" wrap=""none"" lIns=""0"" tIns=""0"" rIns=""0"" bIns=""0"" numCol=""1"" spcCol=""0"">
+          <a:noFill/>
+        </wps:bodyPr>
+      </wps:wsp>
+    </a:graphicData>
+  </a:graphic>
+</wp:anchor>";
 
-        var p = new Paragraph(
-            new ParagraphProperties(new SpacingBetweenLines { Before = "0", After = "0", Line = "240", LineRule = LineSpacingRuleValues.Auto }),
-            field
-        );
-
-        var txbxContent = new TextBoxContent(p);
-        txbx.Append(txbxContent);
-        shape.Append(txbx);
-
-        return new Run(new Picture(shape));
+        var drawing = new Drawing { InnerXml = drawingInnerXml };
+        return new Run(drawing);
     }
 
     public static byte[] BuildPreprintedBillTemplate()
@@ -514,15 +543,15 @@ public partial class MainWindow : Window
                 P(T("CÔNG TY CỔ PHẦN THIẾT BỊ & CÔNG NGHỆ Á CHÂU", true, "1E293B", "24")),
                 P(T("MST: 0101234567-001  |  ĐC: 456 Hoàng Hoa Thám, Ba Đình, Hà Nội  |  Hotline: 1900-6868", false, "64748B", "18")),
                 P(
-                    T("Mẫu số: ....................       Ký hiệu: ....................       Số: ....................", false, "475569", "20"),
-                    CreateTextShape("InvoiceForm", leftPt: 40, topPt: -2, widthPt: 85, heightPt: 16, fontColor: "1E293B", bold: true),
-                    CreateTextShape("InvoiceSerial", leftPt: 175, topPt: -2, widthPt: 75, heightPt: 16, fontColor: "1E293B", bold: true),
-                    CreateTextShape("padleft(InvoiceNo, 7, '0')", leftPt: 295, topPt: -3, widthPt: 90, heightPt: 18, fontColor: "DC2626", fontSizeHalfPt: "26", bold: true)
+                    T("Mẫu số: ..................       Ký hiệu: ..................       Số: ..................", false, "475569", "20"),
+                    CreateTextShape("InvoiceForm", leftPt: 45, topPt: -1, widthPt: 85, heightPt: 16, fontColor: "1E293B", bold: true),
+                    CreateTextShape("InvoiceSerial", leftPt: 175, topPt: -1, widthPt: 75, heightPt: 16, fontColor: "1E293B", bold: true),
+                    CreateTextShape("padleft(InvoiceNo, 7, '0')", leftPt: 295, topPt: -2, widthPt: 90, heightPt: 18, fontColor: "DC2626", fontSizeHalfPt: "26", bold: true)
                 ),
                 P(
                     T("Ngày lập hóa đơn: Ngày ..... tháng ..... năm 2026", false, "475569", "20"),
-                    CreateTextShape("BillDay", leftPt: 110, topPt: -2, widthPt: 25, heightPt: 16, fontColor: "1E293B", bold: true),
-                    CreateTextShape("BillMonth", leftPt: 170, topPt: -2, widthPt: 25, heightPt: 16, fontColor: "1E293B", bold: true)
+                    CreateTextShape("BillDay", leftPt: 118, topPt: -1, widthPt: 25, heightPt: 16, fontColor: "1E293B", bold: true),
+                    CreateTextShape("BillMonth", leftPt: 178, topPt: -1, widthPt: 25, heightPt: 16, fontColor: "1E293B", bold: true)
                 )
             );
 
@@ -530,13 +559,13 @@ public partial class MainWindow : Window
             var footerPart = main.AddNewPart<FooterPart>();
             footerPart.Footer = new Footer(
                 P(
-                    T("Người mua hàng                                 Người giao hàng                                 Thủ trưởng đơn vị", true, "334155", "20")
+                    T("Người mua hàng                     Người giao hàng                     Thủ trưởng đơn vị", true, "334155", "20")
                 ),
                 P(
-                    T("(Ký, ghi rõ họ tên)                             (Ký, ghi rõ họ tên)                             (Ký, đóng dấu, họ tên)", false, "64748B", "18")
+                    T("(Ký, ghi rõ họ tên)                 (Ký, ghi rõ họ tên)                 (Ký, đóng dấu, họ tên)", false, "64748B", "18")
                 ),
                 P(
-                    T("...................................             ...................................             ...................................", false, "94A3B8", "20"),
+                    T("............................        ............................        ............................", false, "94A3B8", "20"),
                     CreateTextShape("BuyerSign", leftPt: 10, topPt: 15, widthPt: 130, heightPt: 18, fontColor: "1E293B", bold: true),
                     CreateTextShape("DelivererSign", leftPt: 175, topPt: 15, widthPt: 130, heightPt: 18, fontColor: "1E293B", bold: true),
                     CreateTextShape("ManagerSign:upper()", leftPt: 345, topPt: 15, widthPt: 140, heightPt: 18, fontColor: "1E293B", bold: true)
@@ -545,7 +574,9 @@ public partial class MainWindow : Window
 
             var sectionProps = new SectionProperties(
                 new HeaderReference { Type = HeaderFooterValues.Default, Id = main.GetIdOfPart(headerPart) },
-                new FooterReference { Type = HeaderFooterValues.Default, Id = main.GetIdOfPart(footerPart) }
+                new FooterReference { Type = HeaderFooterValues.Default, Id = main.GetIdOfPart(footerPart) },
+                new PageSize { Width = 11906, Height = 16838 },
+                new PageMargin { Top = 1000, Bottom = 1000, Left = 1000, Right = 1000, Header = 500, Footer = 500 }
             );
 
             // Table Header on Pre-printed Bill
@@ -592,29 +623,29 @@ public partial class MainWindow : Window
                 P(),
                 // Pre-printed Dotted Field 1: Customer Name
                 P(
-                    T("Họ tên người mua hàng: ............................................................................................................", false, "475569", "20"),
-                    CreateTextShape("CustomerName", leftPt: 130, topPt: -2, widthPt: 320, heightPt: 18, fontColor: "0F172A", bold: true)
+                    T("Họ tên người mua hàng: ..........................................", false, "475569", "20"),
+                    CreateTextShape("CustomerName", leftPt: 125, topPt: -1, widthPt: 320, heightPt: 18, fontColor: "0F172A", bold: true)
                 ),
                 // Pre-printed Dotted Field 2: Company Name
                 P(
-                    T("Tên đơn vị (Doanh nghiệp): ....................................................................................................", false, "475569", "20"),
-                    CreateTextShape("CustomerCompany", leftPt: 140, topPt: -2, widthPt: 320, heightPt: 18, fontColor: "0F172A", bold: false)
+                    T("Tên đơn vị (Doanh nghiệp): ....................................", false, "475569", "20"),
+                    CreateTextShape("CustomerCompany", leftPt: 140, topPt: -1, widthPt: 320, heightPt: 18, fontColor: "0F172A", bold: false)
                 ),
                 // Pre-printed Dotted Field 3: Tax Code
                 P(
-                    T("Mã số thuế: ............................................................................................................................", false, "475569", "20"),
-                    CreateTextShape("CustomerTaxCode", leftPt: 75, topPt: -2, widthPt: 180, heightPt: 18, fontColor: "0F172A", bold: true)
+                    T("Mã số thuế: .....................................................", false, "475569", "20"),
+                    CreateTextShape("CustomerTaxCode", leftPt: 70, topPt: -1, widthPt: 180, heightPt: 18, fontColor: "0F172A", bold: true)
                 ),
                 // Pre-printed Dotted Field 4: Address
                 P(
-                    T("Địa chỉ trụ sở / giao hàng: ......................................................................................................", false, "475569", "20"),
-                    CreateTextShape("CustomerAddress", leftPt: 135, topPt: -2, widthPt: 330, heightPt: 18, fontColor: "0F172A", bold: false)
+                    T("Địa chỉ trụ sở / giao hàng: ....................................", false, "475569", "20"),
+                    CreateTextShape("CustomerAddress", leftPt: 135, topPt: -1, widthPt: 330, heightPt: 18, fontColor: "0F172A", bold: false)
                 ),
                 // Pre-printed Dotted Field 5: Payment method & bank
                 P(
-                    T("Hình thức thanh toán: ........................................   Số tài khoản: .................................................", false, "475569", "20"),
-                    CreateTextShape("PaymentMethod", leftPt: 125, topPt: -2, widthPt: 100, heightPt: 18, fontColor: "0F172A"),
-                    CreateTextShape("BankAccount", leftPt: 295, topPt: -2, widthPt: 170, heightPt: 18, fontColor: "0F172A")
+                    T("Hình thức thanh toán: ..............................   Số tài khoản: ....................", false, "475569", "20"),
+                    CreateTextShape("PaymentMethod", leftPt: 120, topPt: -1, widthPt: 110, heightPt: 18, fontColor: "0F172A"),
+                    CreateTextShape("BankAccount", leftPt: 325, topPt: -1, widthPt: 170, heightPt: 18, fontColor: "0F172A")
                 ),
                 P(),
                 // Items Table
@@ -622,20 +653,20 @@ public partial class MainWindow : Window
                 P(),
                 // Financial Totals over Pre-printed dots
                 P(
-                    T("Cộng tiền hàng: ............................................................................................................................", false, "475569", "20"),
-                    CreateTextShape("Subtotal:currency(vi-VN)", leftPt: 105, topPt: -2, widthPt: 200, heightPt: 18, fontColor: "0F172A", bold: true)
+                    T("Cộng tiền hàng: .......................................................................................", false, "475569", "20"),
+                    CreateTextShape("Subtotal:currency(vi-VN)", leftPt: 100, topPt: -1, widthPt: 200, heightPt: 18, fontColor: "0F172A", bold: true)
                 ),
                 P(
-                    T("Tiền thuế GTGT (10%): ...............................................................................................................", false, "475569", "20"),
-                    CreateTextShape("VatAmount:currency(vi-VN)", leftPt: 140, topPt: -2, widthPt: 200, heightPt: 18, fontColor: "0F172A", bold: true)
+                    T("Tiền thuế GTGT (10%): .................................................................................", false, "475569", "20"),
+                    CreateTextShape("VatAmount:currency(vi-VN)", leftPt: 135, topPt: -1, widthPt: 200, heightPt: 18, fontColor: "0F172A", bold: true)
                 ),
                 P(
-                    T("Tổng cộng tiền thanh toán: .....................................................................................................", true, "0F172A", "22"),
-                    CreateTextShape("TotalAmount:currency(vi-VN)", leftPt: 160, topPt: -3, widthPt: 220, heightPt: 20, fontColor: "DC2626", fontSizeHalfPt: "24", bold: true)
+                    T("Tổng cộng tiền thanh toán: .....................................................................", true, "0F172A", "22"),
+                    CreateTextShape("TotalAmount:currency(vi-VN)", leftPt: 155, topPt: -2, widthPt: 220, heightPt: 20, fontColor: "DC2626", fontSizeHalfPt: "24", bold: true)
                 ),
                 P(
-                    T("Số tiền viết bằng chữ: .................................................................................................................", false, "475569", "20"),
-                    CreateTextShape("TotalInWords", leftPt: 130, topPt: -2, widthPt: 330, heightPt: 18, fontColor: "0F172A", fontSizeHalfPt: "20", bold: true, italic: true)
+                    T("Số tiền viết bằng chữ: .............................................................................", false, "475569", "20"),
+                    CreateTextShape("TotalInWords", leftPt: 125, topPt: -1, widthPt: 330, heightPt: 18, fontColor: "0F172A", fontSizeHalfPt: "20", bold: true, italic: true)
                 ),
                 sectionProps
             );

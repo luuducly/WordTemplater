@@ -293,16 +293,20 @@ namespace WordTemplater
 
     private bool IsMergeFieldNode(OpenXmlElement x)
     {
-      if (x is SimpleField)
+      string? fieldCode = null;
+      if (x is SimpleField simpleField)
       {
-        var simpleField = (SimpleField)x;
-        var fieldCode = simpleField.Instruction.Value;
-        if (!string.IsNullOrEmpty(fieldCode) && fieldCode.Contains(Constant.MERGEFORMAT)) return true;
+        fieldCode = simpleField.Instruction?.Value;
       }
-      else if (x is FieldCode)
+      else if (x is FieldCode fieldCodeEl)
       {
-        var fieldCode = ((FieldCode)x).Text;
-        if (!string.IsNullOrEmpty(fieldCode) && fieldCode.Contains(Constant.MERGEFORMAT)) return true;
+        fieldCode = fieldCodeEl.Text;
+      }
+
+      if (!string.IsNullOrEmpty(fieldCode))
+      {
+        return fieldCode.Contains("MERGEFORMAT", StringComparison.OrdinalIgnoreCase)
+            || fieldCode.Contains("MERGEFIELD", StringComparison.OrdinalIgnoreCase);
       }
       return false;
     }
@@ -326,14 +330,15 @@ namespace WordTemplater
     {
       if (string.IsNullOrEmpty(code)) return;
       var i1 = code.IndexOf(" ");
-      var i2 = code.IndexOf(Constant.MERGEFORMAT);
-      if (i1 >= 0 && i2 >= 0 && i2 > i1)
+      var i2 = code.IndexOf(@"\*", StringComparison.OrdinalIgnoreCase);
+      if (i2 < 0) i2 = code.IndexOf("MERGEFORMAT", StringComparison.OrdinalIgnoreCase);
+      if (i2 < 0) i2 = code.Length;
+      if (i1 >= 0 && i2 > i1)
       {
         code = code.Substring(i1, i2 - i1).Trim();
-        if (code.StartsWith('"') && code.EndsWith('"'))
+        if (code.StartsWith('"') && code.EndsWith('"') && code.Length >= 2)
         {
-          code = code.Substring(1);
-          code = code.Substring(0, code.Length - 1);
+          code = code.Substring(1, code.Length - 2);
         }
         var i3 = code.IndexOf('(');
 

@@ -196,5 +196,170 @@ namespace WordTemplater.Tests
                 ["Groups"] = groupArray
             };
         }
+        /// <summary>
+        /// Creates a modern DrawingML Text Shape anchored with relative positioning for preprinted bill forms.
+        /// </summary>
+        public static Run CreateDrawingMLTextShape(string fieldCode, double leftPt, double topPt, double widthPt, double heightPt, string fontColor = "0F172A", string fontSizeHalfPt = "22", bool bold = false, bool italic = false)
+        {
+            long xEmu = (long)(leftPt * 12700);
+            long yEmu = (long)(topPt * 12700);
+            long wEmu = (long)(widthPt * 12700);
+            long hEmu = (long)(heightPt * 12700);
+
+            string boldXml = bold ? "<w:b/>" : "";
+            string italicXml = italic ? "<w:i/>" : "";
+            string colorXml = !string.IsNullOrEmpty(fontColor) ? $"<w:color w:val=\"{fontColor}\"/>" : "";
+            string szXml = !string.IsNullOrEmpty(fontSizeHalfPt) ? $"<w:sz w:val=\"{fontSizeHalfPt}\"/>" : "";
+
+            uint shapeId = (uint)(System.Guid.NewGuid().GetHashCode() & 0x7FFFFFFF);
+
+            string drawingInnerXml = $@"<wp:anchor xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing""
+                        xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main""
+                        xmlns:wps=""http://schemas.microsoft.com/office/word/2010/wordprocessingShape""
+                        xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main""
+                        distT=""0"" distB=""0"" distL=""0"" distR=""0"" simplePos=""0"" relativeHeight=""251658240"" behindDoc=""0"" locked=""0"" layoutInCell=""1"" allowOverlap=""1"">
+  <wp:simplePos x=""0"" y=""0""/>
+  <wp:positionH relativeFrom=""column"">
+    <wp:posOffset>{xEmu}</wp:posOffset>
+  </wp:positionH>
+  <wp:positionV relativeFrom=""paragraph"">
+    <wp:posOffset>{yEmu}</wp:posOffset>
+  </wp:positionV>
+  <wp:extent cx=""{wEmu}"" cy=""{hEmu}""/>
+  <wp:effectExtent l=""0"" t=""0"" r=""0"" b=""0""/>
+  <wp:wrapNone/>
+  <wp:docPr id=""{shapeId}"" name=""TextShape_{shapeId}""/>
+  <wp:cNvGraphicFramePr/>
+  <a:graphic>
+    <a:graphicData uri=""http://schemas.microsoft.com/office/word/2010/wordprocessingShape"">
+      <wps:wsp>
+        <wps:cNvSpPr txBox=""1""/>
+        <wps:spPr>
+          <a:xfrm>
+            <a:off x=""0"" y=""0""/>
+            <a:ext cx=""{wEmu}"" cy=""{hEmu}""/>
+          </a:xfrm>
+          <a:prstGeom prst=""rect""><a:avLst/></a:prstGeom>
+          <a:noFill/>
+          <a:ln><a:noFill/></a:ln>
+        </wps:spPr>
+        <wps:txbx>
+          <w:txbxContent>
+            <w:p>
+              <w:pPr><w:spacing w:before=""0"" w:after=""0"" w:line=""240"" w:lineRule=""auto""/></w:pPr>
+              <w:fldSimple w:instr="" MERGEFIELD {fieldCode} \* MERGEFORMAT "">
+                <w:r>
+                  <w:rPr>{boldXml}{italicXml}{colorXml}{szXml}</w:rPr>
+                  <w:t>«{fieldCode}»</w:t>
+                </w:r>
+              </w:fldSimple>
+            </w:p>
+          </w:txbxContent>
+        </wps:txbx>
+        <wps:bodyPr rot=""0"" spcFirstLastPara=""0"" vertOverflow=""overflow"" horzOverflow=""overflow"" vert=""horz"" wrap=""none"" lIns=""0"" tIns=""0"" rIns=""0"" bIns=""0"" numCol=""1"" spcCol=""0"">
+          <a:noFill/>
+        </wps:bodyPr>
+      </wps:wsp>
+    </a:graphicData>
+  </a:graphic>
+</wp:anchor>";
+
+            var drawing = new Drawing { InnerXml = drawingInnerXml };
+            return new Run(drawing);
+        }
+
+        public static byte[] BuildPreprintedBillTemplate()
+        {
+            using var ms = new MemoryStream();
+            using (var doc = WordprocessingDocument.Create(ms, WordprocessingDocumentType.Document))
+            {
+                var main = doc.AddMainDocumentPart();
+                main.Document = new Document();
+
+                // 1. Header with exact text shapes over pre-printed dots
+                var headerPart = main.AddNewPart<HeaderPart>();
+                headerPart.Header = new Header(
+                    P(T("CÔNG TY CỔ PHẦN THIẾT BỊ & CÔNG NGHỆ Á CHÂU")),
+                    P(T("MST: 0101234567-001  |  ĐC: 456 Hoàng Hoa Thám, Ba Đình, Hà Nội")),
+                    P(
+                        T("Mẫu số: ..................       Ký hiệu: ..................       Số: .................."),
+                        CreateDrawingMLTextShape("InvoiceForm", leftPt: 45, topPt: -1, widthPt: 85, heightPt: 16, fontColor: "1E293B", bold: true),
+                        CreateDrawingMLTextShape("InvoiceSerial", leftPt: 175, topPt: -1, widthPt: 75, heightPt: 16, fontColor: "1E293B", bold: true),
+                        CreateDrawingMLTextShape("padleft(InvoiceNo, 7, '0')", leftPt: 295, topPt: -2, widthPt: 90, heightPt: 18, fontColor: "DC2626", fontSizeHalfPt: "26", bold: true)
+                    ),
+                    P(
+                        T("Ngày lập hóa đơn: Ngày ..... tháng ..... năm 2026"),
+                        CreateDrawingMLTextShape("BillDay", leftPt: 118, topPt: -1, widthPt: 25, heightPt: 16, fontColor: "1E293B", bold: true),
+                        CreateDrawingMLTextShape("BillMonth", leftPt: 178, topPt: -1, widthPt: 25, heightPt: 16, fontColor: "1E293B", bold: true)
+                    )
+                );
+
+                // 2. Footer with exact text shapes for signatures
+                var footerPart = main.AddNewPart<FooterPart>();
+                footerPart.Footer = new Footer(
+                    P(T("Người mua hàng                     Người giao hàng                     Thủ trưởng đơn vị")),
+                    P(
+                        T("............................        ............................        ............................"),
+                        CreateDrawingMLTextShape("BuyerSign", leftPt: 10, topPt: 15, widthPt: 130, heightPt: 18, fontColor: "1E293B", bold: true),
+                        CreateDrawingMLTextShape("DelivererSign", leftPt: 175, topPt: 15, widthPt: 130, heightPt: 18, fontColor: "1E293B", bold: true),
+                        CreateDrawingMLTextShape("ManagerSign:upper()", leftPt: 345, topPt: 15, widthPt: 140, heightPt: 18, fontColor: "1E293B", bold: true)
+                    )
+                );
+
+                var sectionProps = new SectionProperties(
+                    new HeaderReference { Type = HeaderFooterValues.Default, Id = main.GetIdOfPart(headerPart) },
+                    new FooterReference { Type = HeaderFooterValues.Default, Id = main.GetIdOfPart(footerPart) },
+                    new PageSize { Width = 11906, Height = 16838 },
+                    new PageMargin { Top = 1000, Bottom = 1000, Left = 1000, Right = 1000, Header = 500, Footer = 500 }
+                );
+
+                // 3. Body with dotted background lines & overlay Text Shapes
+                var body = new Body(
+                    P(T("HÓA ĐƠN BÁN HÀNG / GIÁ TRỊ GIA TĂNG")),
+                    P(
+                        T("Họ tên người mua hàng: .........................................."),
+                        CreateDrawingMLTextShape("CustomerName", leftPt: 125, topPt: -1, widthPt: 320, heightPt: 18, fontColor: "0F172A", bold: true)
+                    ),
+                    P(
+                        T("Tên đơn vị (Doanh nghiệp): ...................................."),
+                        CreateDrawingMLTextShape("CustomerCompany", leftPt: 140, topPt: -1, widthPt: 320, heightPt: 18, fontColor: "0F172A", bold: false)
+                    ),
+                    P(
+                        T("Mã số thuế: ....................................................."),
+                        CreateDrawingMLTextShape("CustomerTaxCode", leftPt: 70, topPt: -1, widthPt: 180, heightPt: 18, fontColor: "0F172A", bold: true)
+                    ),
+                    P(
+                        T("Địa chỉ trụ sở / giao hàng: ...................................."),
+                        CreateDrawingMLTextShape("CustomerAddress", leftPt: 135, topPt: -1, widthPt: 330, heightPt: 18, fontColor: "0F172A", bold: false)
+                    ),
+                    P(
+                        T("Hình thức thanh toán: ..............................   Số tài khoản: ...................."),
+                        CreateDrawingMLTextShape("PaymentMethod", leftPt: 120, topPt: -1, widthPt: 110, heightPt: 18, fontColor: "0F172A"),
+                        CreateDrawingMLTextShape("BankAccount", leftPt: 325, topPt: -1, widthPt: 170, heightPt: 18, fontColor: "0F172A")
+                    ),
+                    P(),
+                    P(
+                        T("Cộng tiền hàng: ......................................................................................."),
+                        CreateDrawingMLTextShape("Subtotal:currency(vi-VN)", leftPt: 100, topPt: -1, widthPt: 200, heightPt: 18, fontColor: "0F172A", bold: true)
+                    ),
+                    P(
+                        T("Tiền thuế GTGT (10%): ................................................................................."),
+                        CreateDrawingMLTextShape("VatAmount:currency(vi-VN)", leftPt: 135, topPt: -1, widthPt: 200, heightPt: 18, fontColor: "0F172A", bold: true)
+                    ),
+                    P(
+                        T("Tổng cộng tiền thanh toán: ....................................................................."),
+                        CreateDrawingMLTextShape("TotalAmount:currency(vi-VN)", leftPt: 155, topPt: -2, widthPt: 220, heightPt: 20, fontColor: "DC2626", fontSizeHalfPt: "24", bold: true)
+                    ),
+                    P(
+                        T("Số tiền viết bằng chữ: ............................................................................."),
+                        CreateDrawingMLTextShape("TotalInWords", leftPt: 125, topPt: -1, widthPt: 330, heightPt: 18, fontColor: "0F172A", fontSizeHalfPt: "20", bold: true, italic: true)
+                    ),
+                    sectionProps
+                );
+
+                main.Document.Body = body;
+            }
+            return ms.ToArray();
+        }
     }
 }

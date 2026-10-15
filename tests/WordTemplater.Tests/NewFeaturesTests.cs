@@ -322,5 +322,175 @@ namespace WordTemplater.Tests
             var outFooter = outDoc.MainDocumentPart!.FooterParts.First().Footer;
             Assert.Contains("TRAN VAN GIAM DOC", outFooter.InnerText);
         }
+
+        [Fact]
+        public void Export_PreprintedBillWithDrawingMLShapes_FillsFieldsDirectlyOverDots()
+        {
+            using var ms = new MemoryStream();
+            using (var doc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Create(ms, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
+            {
+                var main = doc.AddMainDocumentPart();
+                main.Document = new DocumentFormat.OpenXml.Wordprocessing.Document();
+
+                long xEmu = (long)(130 * 12700);
+                long yEmu = (long)(-2 * 12700);
+                long wEmu = (long)(320 * 12700);
+                long hEmu = (long)(18 * 12700);
+
+                string drawingInnerXml = $@"<wp:anchor xmlns:wp=""http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing""
+                        xmlns:a=""http://schemas.openxmlformats.org/drawingml/2006/main""
+                        xmlns:wps=""http://schemas.microsoft.com/office/word/2010/wordprocessingShape""
+                        distT=""0"" distB=""0"" distL=""0"" distR=""0"" simplePos=""0"" relativeHeight=""251658240"" behindDoc=""0"" locked=""0"" layoutInCell=""1"" allowOverlap=""1"">
+  <wp:simplePos x=""0"" y=""0""/>
+  <wp:positionH relativeFrom=""column"">
+    <wp:posOffset>{xEmu}</wp:posOffset>
+  </wp:positionH>
+  <wp:positionV relativeFrom=""paragraph"">
+    <wp:posOffset>{yEmu}</wp:posOffset>
+  </wp:positionV>
+  <wp:extent cx=""{wEmu}"" cy=""{hEmu}""/>
+  <wp:effectExtent l=""0"" t=""0"" r=""0"" b=""0""/>
+  <wp:wrapNone/>
+  <wp:docPr id=""101"" name=""TextShape_Customer""/>
+  <wp:cNvGraphicFramePr/>
+  <a:graphic>
+    <a:graphicData uri=""http://schemas.microsoft.com/office/word/2010/wordprocessingShape"">
+      <wps:wsp>
+        <wps:cNvSpPr txBox=""1""/>
+        <wps:spPr>
+          <a:xfrm>
+            <a:off x=""0"" y=""0""/>
+            <a:ext cx=""{wEmu}"" cy=""{hEmu}""/>
+          </a:xfrm>
+          <a:prstGeom prst=""rect""><a:avLst/></a:prstGeom>
+          <a:noFill/>
+          <a:ln><a:noFill/></a:ln>
+        </wps:spPr>
+        <wps:txbx>
+          <w:txbxContent xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+            <w:p>
+              <w:pPr><w:spacing w:before=""0"" w:after=""0"" w:line=""240"" w:lineRule=""auto""/></w:pPr>
+              <w:fldSimple w:instr="" MERGEFIELD CustomerName \* MERGEFORMAT "">
+                <w:r><w:t>«CustomerName»</w:t></w:r>
+              </w:fldSimple>
+            </w:p>
+          </w:txbxContent>
+        </wps:txbx>
+        <wps:bodyPr rot=""0"" spcFirstLastPara=""0"" vertOverflow=""overflow"" horzOverflow=""overflow"" vert=""horz"" wrap=""none"" lIns=""0"" tIns=""0"" rIns=""0"" bIns=""0"" numCol=""1"" spcCol=""0"">
+          <a:noFill/>
+        </wps:bodyPr>
+      </wps:wsp>
+    </a:graphicData>
+  </a:graphic>
+</wp:anchor>";
+
+                var drawing = new DocumentFormat.OpenXml.Wordprocessing.Drawing { InnerXml = drawingInnerXml };
+                var shapeRun = new DocumentFormat.OpenXml.Wordprocessing.Run(drawing);
+
+                var p = new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
+                    TestTemplates.T("Họ tên người mua hàng: ................................................................"),
+                    shapeRun
+                );
+
+                main.Document.Body = new DocumentFormat.OpenXml.Wordprocessing.Body(p);
+            }
+
+            var templateBytes = ms.ToArray();
+            using var templateStream = new MemoryStream(templateBytes);
+            using var template = new WordTemplate(templateStream);
+
+            var data = new Newtonsoft.Json.Linq.JObject
+            {
+                ["CustomerName"] = "Ông Nguyễn Hoàng Nam (Cty Braitoli)"
+            };
+
+            using var output = template.Export(data);
+            Assert.NotNull(output);
+
+            using var outDoc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(output!, false);
+            var docXml = outDoc.MainDocumentPart!.Document.OuterXml;
+            Assert.Contains("Ông Nguyễn Hoàng Nam (Cty Braitoli)", docXml);
+            Assert.Contains("Họ tên người mua hàng: ................................................................", docXml);
+        }
+
+        [Fact]
+        public void Export_DesktopPreprintedBillTemplate_FillsExactOverlayTextShapes()
+        {
+            byte[] tplBytes = TestTemplates.BuildPreprintedBillTemplate();
+            using var tplStream = new MemoryStream(tplBytes);
+            using var template = new WordTemplate(tplStream);
+
+            var preprintedData = new Newtonsoft.Json.Linq.JObject
+            {
+                ["InvoiceForm"] = "01GTKT0/001",
+                ["InvoiceSerial"] = "AA/26E",
+                ["InvoiceNo"] = 4589,
+                ["BillDay"] = "15",
+                ["BillMonth"] = "10",
+                ["CustomerName"] = "Ông Nguyễn Hoàng Nam",
+                ["CustomerCompany"] = "Công ty Cổ phần Công nghệ & Viễn thông Quốc tế",
+                ["CustomerTaxCode"] = "0109887766-001",
+                ["CustomerAddress"] = "Tòa nhà Center Point, 106 Nguyễn Văn Trỗi, P. 8, Phú Nhuận, TP.HCM",
+                ["PaymentMethod"] = "Chuyển khoản (TM/CK)",
+                ["BankAccount"] = "19038899887701 (Techcombank)",
+                ["Item1_Name"] = "Máy chủ Dell PowerEdge R750",
+                ["Item1_Unit"] = "Bộ",
+                ["Item1_Qty"] = 2,
+                ["Item1_Price"] = 85000000,
+                ["Item1_Amount"] = 170000000,
+                ["Item2_Name"] = "Thiết bị mạng Cisco Catalyst 9200L",
+                ["Item2_Unit"] = "Chiếc",
+                ["Item2_Qty"] = 1,
+                ["Item2_Price"] = 42000000,
+                ["Item2_Amount"] = 42000000,
+                ["Item3_Name"] = "Gói dịch vụ bảo mật 24/7",
+                ["Item3_Unit"] = "Gói",
+                ["Item3_Qty"] = 1,
+                ["Item3_Price"] = 18000000,
+                ["Item3_Amount"] = 18000000,
+                ["Subtotal"] = 230000000,
+                ["VatAmount"] = 23000000,
+                ["TotalAmount"] = 253000000,
+                ["TotalInWords"] = "Hai trăm năm mươi ba triệu đồng chẵn.",
+                ["BuyerSign"] = "Nguyễn Hoàng Nam",
+                ["DelivererSign"] = "Lê Thanh Tùng",
+                ["ManagerSign"] = "Trần Đình Trọng"
+            };
+
+            using var output = template.Export(preprintedData);
+            Assert.NotNull(output);
+
+            string outDir = Path.Combine(AppContext.BaseDirectory, "Output");
+            if (!Directory.Exists(outDir)) Directory.CreateDirectory(outDir);
+            string outPath = Path.Combine(outDir, "Exported_Document.docx");
+            File.WriteAllBytes(outPath, ((MemoryStream)output).ToArray());
+
+            string hardcodedPath = "/Users/lyld/.gemini/antigravity-ide/scratch/WordTemplater/examples/WordTemplater.Desktop/bin/Debug/net10.0/Output/Exported_Document.docx";
+            string? dir = Path.GetDirectoryName(hardcodedPath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            File.WriteAllBytes(hardcodedPath, ((MemoryStream)output).ToArray());
+
+            using var outDoc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(output!, false);
+            // 1. Header has filled text shapes
+            var headerXml = outDoc.MainDocumentPart!.HeaderParts.First().Header.OuterXml;
+            Assert.Contains("01GTKT0/001", headerXml);
+            Assert.Contains("AA/26E", headerXml);
+            Assert.Contains("0004589", headerXml);
+
+            // 2. Body has filled text shapes over dots
+            var bodyXml = outDoc.MainDocumentPart!.Document.Body!.OuterXml;
+            Assert.Contains("Ông Nguyễn Hoàng Nam", bodyXml);
+            Assert.Contains("Công ty Cổ phần Công nghệ &amp; Viễn thông Quốc tế", bodyXml);
+            Assert.Contains("0109887766-001", bodyXml);
+            Assert.Contains("Tòa nhà Center Point, 106 Nguyễn Văn Trỗi, P. 8, Phú Nhuận, TP.HCM", bodyXml);
+            Assert.Contains("Chuyển khoản (TM/CK)", bodyXml);
+            Assert.Contains("19038899887701 (Techcombank)", bodyXml);
+
+            // 3. Footer has filled text shapes
+            var footerXml = outDoc.MainDocumentPart!.FooterParts.First().Footer.OuterXml;
+            Assert.Contains("Nguyễn Hoàng Nam", footerXml);
+            Assert.Contains("Lê Thanh Tùng", footerXml);
+            Assert.Contains("TRẦN ĐÌNH TRỌNG", footerXml);
+        }
     }
 }

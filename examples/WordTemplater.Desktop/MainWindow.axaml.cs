@@ -18,6 +18,9 @@ public partial class MainWindow : Window
 {
     private string _lastExportedFilePath = string.Empty;
 
+    private const string SampleLogoBase64 =
+        "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";
+
     public MainWindow()
     {
         InitializeComponent();
@@ -48,11 +51,16 @@ public partial class MainWindow : Window
     {
         if (ComboTemplates == null || ComboTemplates.SelectedItem is not ComboBoxItem selectedItem) return;
 
-        string tag = selectedItem.Tag?.ToString() ?? "invoice";
+        string tag = selectedItem.Tag?.ToString() ?? "showcase";
         if (PanelCustomTemplate != null) PanelCustomTemplate.IsVisible = (tag == "custom");
 
         switch (tag)
         {
+            case "showcase":
+                if (TxtTemplateInfo != null) TxtTemplateInfo.Text = "Comprehensive showcase: QR Code, 1D Barcode, Raster Image (Base64), Mermaid diagram, Rich HTML, Conditional branches (inline/comparison), Formatting & Repeating Table.";
+                if (TxtWatermarkText != null) TxtWatermarkText.Text = "OFFICIAL";
+                if (TxtWatermarkColor != null) TxtWatermarkColor.Text = "2563EB";
+                break;
             case "invoice":
                 if (TxtTemplateInfo != null) TxtTemplateInfo.Text = "Template: Invoice with table cloning, zebra striping, currency & loop metadata (_index, _first, _last).";
                 if (TxtWatermarkText != null) TxtWatermarkText.Text = "PAID";
@@ -75,9 +83,39 @@ public partial class MainWindow : Window
     {
         if (ComboTemplates == null || TxtJsonData == null || ComboTemplates.SelectedItem is not ComboBoxItem selectedItem) return;
 
-        string tag = selectedItem.Tag?.ToString() ?? "invoice";
+        string tag = selectedItem.Tag?.ToString() ?? "showcase";
 
-        if (tag == "invoice")
+        if (tag == "showcase")
+        {
+            var showcaseData = new
+            {
+                DocId = 4829,
+                GeneratedAt = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"),
+                IsVerified = true,
+                HasBonus = true,
+                Score = 95,
+                ApprovalStatus = true,
+                BarcodePayload = "WT-DOCX-998822",
+                QrPayload = "https://github.com/luuducly/WordTemplater",
+                LogoImage = SampleLogoBase64,
+                ArchitectureDiagram = "graph TD\n  A[Client Input] --> B(WordTemplater Core)\n  B --> C{Template Parser}\n  C -->|Tables| D[Table Cloner]\n  C -->|QR / Barcode| E[SkiaSharp Generator]\n  C -->|Mermaid| F[Kroki Renderer]\n  D & E & F --> G[OpenXML .docx Package]",
+                HtmlNotes = "<h3>Enterprise Certification Summary</h3><p>This document was compiled with <b>WordTemplater v2.1.6</b>. Key capabilities:</p><ul><li><b>Native OpenXML</b>: Zero Microsoft Word/Office dependency</li><li><b>Rich Media</b>: Direct generation of QR Codes, Barcodes, Mermaid diagrams &amp; Images</li><li><b>Cross-Platform</b>: Runs identically on macOS, Linux, and Windows</li></ul>",
+                Products = new object[]
+                {
+                    new { Sku = "SRV-K8S-01", Name = "Managed Kubernetes Cluster Pool (16 vCPU)", Category = "Infrastructure", Qty = 3, Price = 450.00, LineTotal = 1350.00 },
+                    new { Sku = "STG-NVME-02", Name = "High-Speed NVMe Storage Block (4TB)", Category = "Storage", Qty = 2, Price = 220.00, LineTotal = 440.00 },
+                    new { Sku = "SEC-WAF-03", Name = "Web Application Firewall & Shield", Category = "Security", Qty = 1, Price = 380.00, LineTotal = 380.00 },
+                    new { Sku = "AI-INFER-04", Name = "GPU Neural Inference Engine (A100)", Category = "Compute", Qty = 1, Price = 1250.00, LineTotal = 1250.00 }
+                },
+                Subtotal = 3420.00,
+                TaxRate = 0.10,
+                Total = 3762.00,
+                RefCode = "WT-2026"
+            };
+
+            TxtJsonData.Text = JsonConvert.SerializeObject(showcaseData, Formatting.Indented);
+        }
+        else if (tag == "invoice")
         {
             var invoiceData = new
             {
@@ -335,7 +373,7 @@ public partial class MainWindow : Window
 
     private byte[] GetTemplateBytes()
     {
-        string tag = (ComboTemplates.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "invoice";
+        string tag = (ComboTemplates.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "showcase";
 
         if (tag == "custom")
         {
@@ -347,12 +385,111 @@ public partial class MainWindow : Window
             return File.ReadAllBytes(path);
         }
 
+        if (tag == "showcase")
+        {
+            return BuildShowcaseTemplate();
+        }
+
         if (tag == "invoice")
         {
             return BuildInvoiceTemplate();
         }
 
         return BuildEmployeeTemplate();
+    }
+
+    public static byte[] BuildShowcaseTemplate()
+    {
+        using var ms = new MemoryStream();
+        using (var doc = WordprocessingDocument.Create(ms, WordprocessingDocumentType.Document))
+        {
+            var main = doc.AddMainDocumentPart();
+
+            var prodHeader = new TableRow(
+                C(P(T("#", true, "1E293B")), bgColor: "E2E8F0"),
+                C(P(T("SKU", true, "1E293B")), bgColor: "E2E8F0"),
+                C(P(T("Product / Service Description", true, "1E293B")), bgColor: "E2E8F0"),
+                C(P(T("Category", true, "1E293B")), bgColor: "E2E8F0"),
+                C(P(T("Qty", true, "1E293B")), bgColor: "E2E8F0"),
+                C(P(T("Unit Price", true, "1E293B")), bgColor: "E2E8F0"),
+                C(P(T("Line Total", true, "1E293B")), bgColor: "E2E8F0")
+            );
+
+            var prodRow = new TableRow(
+                C(P(F("_index"))),
+                C(P(F("Sku:upper()"))),
+                C(P(F("Name"))),
+                C(P(F("Category:lower()"))),
+                C(P(F("Qty:number(#,##0)"))),
+                C(P(F("Price:currency(en-US)"))),
+                C(P(F("LineTotal:currency(en-US)")))
+            );
+
+            var body = new Body(
+                // 1. Header Banner & Title
+                P(T("WORDTEMPLATER ENTERPRISE SHOWCASE", true, "0F172A", "36")),
+                P(T("Comprehensive Multi-Data-Type Test Suite for OpenXML Document Automation", false, "64748B", "20")),
+                P(),
+
+                // 2. Raster Image (Logo)
+                P(T("1. Embedded Raster Image (Base64 PNG):", true, "1E293B", "22")),
+                P(F("image(LogoImage)")),
+                P(),
+
+                // 3. Document Metadata & String Formatting
+                P(T("2. Document Metadata & String Formatting:", true, "1E293B", "22")),
+                P(T("Document ID (Padded 8 digits): ", true), F("padleft(DocId, 8, '0')"),
+                  T("   |   Reference: ", true), F("RefCode:padright(12, '*')")),
+                P(T("Generated At: ", true), F("date(GeneratedAt, 'dddd, dd MMMM yyyy HH:mm', 'en-US')")),
+                P(),
+
+                // 4. Machine-Readable Identifiers (QR Code & Barcode)
+                P(T("3. Visual Machine-Readable Codes (QR Code & Barcode):", true, "1E293B", "22")),
+                P(T("1D Tracking Barcode (Code128):", true, "334155")),
+                P(F("barcode(BarcodePayload)")),
+                P(T("Barcode Value: ", true), F("BarcodePayload")),
+                P(),
+                P(T("2D Verification QR Code:", true, "334155")),
+                P(F("qrcode(QrPayload)")),
+                P(T("Encoded Target URL: ", true), F("QrPayload")),
+                P(),
+
+                // 5. Conditional Logic & Dynamic Branches
+                P(T("4. Conditional Logic & Dynamic Branches:", true, "1E293B", "22")),
+                P(T("Verification Status (Inline Boolean): ", true),
+                  F("if(IsVerified, 'VERIFIED & CERTIFIED (Digital Signature Valid)', 'UNVERIFIED DRAFT')")),
+                P(T("Performance Incentive (Inline Boolean): ", true),
+                  F("if(HasBonus, 'APPROVED - Performance Bonus Granted', 'NOT ELIGIBLE')")),
+                P(T("VIP Tier Assessment (Inline Comparison Score >= 80): ", true),
+                  F("if(Score >= 80, 'PLATINUM VIP (Tier 1)', 'STANDARD MEMBER')")),
+                P(),
+
+                // 6. Dynamic Repeating Table with Evaluators & Zebra Striping
+                P(T("5. Dynamic Repeating Table with Evaluators & Zebra Striping:", true, "1E293B", "22")),
+                P(F("table(Products)")),
+                new Table(prodHeader, prodRow),
+                P(F("endtable")),
+                P(),
+
+                // Financial Summary
+                P(T("Subtotal: ", true), F("Subtotal:currency(en-US)"),
+                  T("   |   Tax Rate: ", true), F("TaxRate:percentage(2)"),
+                  T("   |   Net Total: ", true, "0F172A", "24"), F("Total:currency(en-US)")),
+                P(),
+
+                // 7. Rich Formatted HTML Content
+                P(T("6. Rich Formatted HTML Content (AltChunk Ingestion):", true, "1E293B", "22")),
+                P(F("html(HtmlNotes)")),
+                P(),
+
+                // 8. Mermaid Architecture Diagram
+                P(T("7. Mermaid Architecture Diagram (Automated Kroki Service):", true, "1E293B", "22")),
+                P(F("mermaid(ArchitectureDiagram)"))
+            );
+
+            main.Document = new Document(body);
+        }
+        return ms.ToArray();
     }
 
     public static byte[] BuildInvoiceTemplate()

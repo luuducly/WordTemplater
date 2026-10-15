@@ -416,33 +416,91 @@ namespace WordTemplater
     {
       if (fieldValue != null)
       {
-        if (parameters.Count >= 2)
+        if (parameters.Count == 1)
+        {
+          bool isTrue = IsTruthy(fieldValue);
+          return isTrue ? (parameters[0]?.ToString() ?? string.Empty) : string.Empty;
+        }
+        if (parameters.Count == 2)
+        {
+          bool isTrue = IsTruthy(fieldValue);
+          return isTrue ? (parameters[0]?.ToString() ?? string.Empty) : (parameters[1]?.ToString() ?? string.Empty);
+        }
+        if (parameters.Count == 4)
+        {
+          var op = parameters[0]?.ToString();
+          var compareValue = parameters[1];
+          var v1 = parameters[2]?.ToString() ?? string.Empty;
+          var v2 = parameters[3]?.ToString() ?? string.Empty;
+
+          var cp = Utils.CompareObjects(fieldValue, compareValue);
+          bool isCorrect = false;
+          switch (op)
+          {
+            case OperatorName.Eq1:
+            case OperatorName.Eq2:
+              isCorrect = (cp == CompareValue.Eq);
+              break;
+            case OperatorName.Neq1:
+            case OperatorName.Neq2:
+              isCorrect = (cp != CompareValue.Eq);
+              break;
+            case OperatorName.Gt:
+              isCorrect = (cp == CompareValue.Gt);
+              break;
+            case OperatorName.Lt:
+              isCorrect = (cp == CompareValue.Lt);
+              break;
+            case OperatorName.Geq:
+              isCorrect = (cp == CompareValue.Gt || cp == CompareValue.Eq);
+              break;
+            case OperatorName.Leq:
+              isCorrect = (cp == CompareValue.Lt || cp == CompareValue.Eq);
+              break;
+          }
+          return isCorrect ? v1 : v2;
+        }
+        else if (parameters.Count >= 3)
         {
           var compareValue = parameters[0];
           var v1 = parameters[1];
+          var v2 = parameters[2];
 
           if (compareValue != null)
           {
             var cp = Utils.CompareObjects(fieldValue, compareValue);
             if (cp == CompareValue.Eq)
             {
-              if (v1 != null) return v1.ToString();
-              return string.Empty;
+              return v1?.ToString() ?? string.Empty;
             }
             else
             {
-              if (parameters.Count >= 3)
-              {
-                var v2 = parameters[2];
-                if (v2 != null) return v2.ToString();
-                return string.Empty;
-              }
+              return v2?.ToString() ?? string.Empty;
             }
           }
         }
         return fieldValue.ToString();
       }
       return string.Empty;
+    }
+
+    private static bool IsTruthy(object value)
+    {
+      if (value is bool b) return b;
+      if (bool.TryParse(value.ToString(), out bool pb)) return pb;
+      if (value is sbyte sb) return sb != 0;
+      if (value is byte by) return by != 0;
+      if (value is short s) return s != 0;
+      if (value is ushort us) return us != 0;
+      if (value is int i) return i != 0;
+      if (value is uint ui) return ui != 0;
+      if (value is long l) return l != 0;
+      if (value is ulong ul) return ul != 0;
+      if (value is float f) return f != 0.0f;
+      if (value is double d) return d != 0.0;
+      if (value is decimal dec) return dec != 0m;
+      string str = value.ToString()?.Trim() ?? string.Empty;
+      return !string.IsNullOrEmpty(str) && !str.Equals("0", StringComparison.OrdinalIgnoreCase) && !str.Equals("false", StringComparison.OrdinalIgnoreCase);
     }
   }
 
@@ -480,11 +538,11 @@ namespace WordTemplater
               else isCorrect = false;
               break;
             case OperatorName.Geq:
-              if (cp == (CompareValue.Gt | CompareValue.Eq)) isCorrect = true;
+              if (cp == CompareValue.Gt || cp == CompareValue.Eq) isCorrect = true;
               else isCorrect = false;
               break;
             case OperatorName.Leq:
-              if (cp == (CompareValue.Lt | CompareValue.Eq)) isCorrect = true;
+              if (cp == CompareValue.Lt || cp == CompareValue.Eq) isCorrect = true;
               else isCorrect = false;
               break;
           }

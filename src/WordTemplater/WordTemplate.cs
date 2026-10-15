@@ -360,45 +360,52 @@ namespace WordTemplater
             var function = fmtContent.Trim().ToLower();
             if (function == FunctionName.If)
             {
-              string op;
-              if (paramContent.IndexOf(OperatorName.Geq) > 0)
-              {
-                op = OperatorName.Geq;
-              }
-              else if (paramContent.IndexOf(OperatorName.Leq) > 0)
-              {
-                op = OperatorName.Leq;
-              }
-              else if (paramContent.IndexOf(OperatorName.Neq1) > 0)
-              {
-                op = OperatorName.Neq1;
-              }
-              else if (paramContent.IndexOf(OperatorName.Neq2) > 0)
-              {
-                op = OperatorName.Neq2;
-              }
-              else if (paramContent.IndexOf(OperatorName.Gt) > 0)
-              {
-                op = OperatorName.Gt;
-              }
-              else if (paramContent.IndexOf(OperatorName.Lt) > 0)
-              {
-                op = OperatorName.Lt;
-              }
-              else if (paramContent.IndexOf(OperatorName.Eq1) > 0)
-              {
-                op = OperatorName.Eq1;
-              }
-              else if (paramContent.IndexOf(OperatorName.Eq2) > 0)
-              {
-                op = OperatorName.Eq2;
-              }
-              else return;
+              string? op = null;
+              if (paramContent.IndexOf(OperatorName.Geq) > 0) op = OperatorName.Geq;
+              else if (paramContent.IndexOf(OperatorName.Leq) > 0) op = OperatorName.Leq;
+              else if (paramContent.IndexOf(OperatorName.Neq1) > 0) op = OperatorName.Neq1;
+              else if (paramContent.IndexOf(OperatorName.Neq2) > 0) op = OperatorName.Neq2;
+              else if (paramContent.IndexOf(OperatorName.Gt) > 0) op = OperatorName.Gt;
+              else if (paramContent.IndexOf(OperatorName.Lt) > 0) op = OperatorName.Lt;
+              else if (paramContent.IndexOf(OperatorName.Eq1) > 0) op = OperatorName.Eq1;
+              else if (paramContent.IndexOf(OperatorName.Eq2) > 0) op = OperatorName.Eq2;
 
-              var sptContent = paramContent.Split(op);
-              context.FieldName = sptContent[0].Trim();
-              context.Parameters = sptContent[1].Trim();
-              context.Templater = new ConditionTemplater(op);
+              if (!string.IsNullOrEmpty(op))
+              {
+                int firstComma = paramContent.IndexOf(',');
+                if (firstComma > 0)
+                {
+                  var condPart = paramContent.Substring(0, firstComma).Trim();
+                  var branchesPart = paramContent.Substring(firstComma + 1).Trim();
+                  var sptContent = condPart.Split(op);
+                  context.FieldName = sptContent[0].Trim();
+                  var compareVal = sptContent.Length > 1 ? sptContent[1].Trim() : string.Empty;
+                  context.Parameters = $"'{op}', {compareVal}, {branchesPart}";
+                  context.Templater = _templaterFactory[FunctionName.If];
+                }
+                else
+                {
+                  var sptContent = paramContent.Split(op);
+                  context.FieldName = sptContent[0].Trim();
+                  context.Parameters = sptContent[1].Trim();
+                  context.Templater = new ConditionTemplater(op);
+                }
+              }
+              else
+              {
+                var paramList = Utils.PaserParametters(paramContent);
+                if (paramList.Count >= 2)
+                {
+                  context.FieldName = paramList[0].ToString()!.Trim();
+                  int firstComma = paramContent.IndexOf(',');
+                  if (firstComma > 0 && firstComma < paramContent.Length - 1)
+                  {
+                    context.Parameters = paramContent.Substring(firstComma + 1).Trim();
+                  }
+                  context.Templater = _templaterFactory[FunctionName.If];
+                }
+                else return;
+              }
             }
             else if (function == FunctionName.Loop)
             {
@@ -423,19 +430,47 @@ namespace WordTemplater
                 context.Templater = new TableTemplater();
               }
             }
+            else if (_templaterFactory.ContainsKey(function))
+            {
+              var paramList = Utils.PaserParametters(paramContent);
+              if (paramList.Count > 0)
+              {
+                context.FieldName = paramList[0]?.ToString()?.Trim() ?? string.Empty;
+                int firstComma = paramContent.IndexOf(',');
+                if (firstComma > 0 && firstComma < paramContent.Length - 1)
+                {
+                  context.Parameters = paramContent.Substring(firstComma + 1).Trim();
+                }
+                else
+                {
+                  context.Parameters = string.Empty;
+                }
+                context.Templater = _templaterFactory[function];
+              }
+            }
           }
         }
         else
         {
-          context.Templater = new DefaultTemplater();
           var i6 = code.IndexOf(':');
           if (i6 > 0)
           {
             context.FieldName = code.Substring(0, i6).Trim();
-            context.Parameters = code.Substring(i6 + 1).Trim();
+            var func = code.Substring(i6 + 1).Trim().ToLower();
+            if (_templaterFactory.ContainsKey(func))
+            {
+              context.Templater = _templaterFactory[func];
+              context.Parameters = string.Empty;
+            }
+            else
+            {
+              context.Templater = new DefaultTemplater();
+              context.Parameters = code.Substring(i6 + 1).Trim();
+            }
           }
           else
           {
+            context.Templater = new DefaultTemplater();
             context.FieldName = code;
           }
         }

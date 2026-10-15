@@ -14,3 +14,4 @@ _ReSharper.*
 *.nupkg
 .DS_Store
 *.received.txt
+BenchmarkDotNet.Artifacts/

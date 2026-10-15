@@ -488,23 +488,26 @@ namespace WordTemplater
           else if (context.MergeField?.StartField?.StartNode != null && context.MergeField.ParentPart != null)
           {
             Size originalSize = WordUtils.GetImageSize(stream);
-            double? percent = GetPercent(context.Parameters);
-            if (percent.HasValue)
+            if (originalSize != null)
             {
-              (double width, double height) = WordUtils.GetPageSize(context.MergeField.StartField.StartNode);
-              double imageWidth = width * percent.Value, imageHeight = height * percent.Value;
-              double ratio = Math.Min(imageWidth / originalSize.Width, imageHeight / originalSize.Height);
-              displaySize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
+              double? percent = GetPercent(context.Parameters);
+              if (percent.HasValue)
+              {
+                (double width, double height) = WordUtils.GetPageSize(context.MergeField.StartField.StartNode);
+                double imageWidth = width * percent.Value, imageHeight = height * percent.Value;
+                double ratio = Math.Min(imageWidth / originalSize.Width, imageHeight / originalSize.Height);
+                displaySize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
+              }
+              else
+              {
+                displaySize = originalSize;
+              }
+              (OpenXmlElement drawingElement, OpenXmlElement graphicDataElement) = CreateNewGraphicElement(displaySize);
+              imageParentElement = graphicDataElement;
+              context.MergeField.StartField.RootNode.InsertBeforeSelf(drawingElement);
+              var imgElement = CreateNewPictureElement(stream, context.MergeField.ParentPart, displaySize, shapeType, sourceRectangle);
+              imageParentElement.Append(imgElement);
             }
-            else
-            {
-              displaySize = originalSize;
-            }
-            (OpenXmlElement drawingElement, OpenXmlElement graphicDataElement) = CreateNewGraphicElement(displaySize);
-            imageParentElement = graphicDataElement;
-            context.MergeField.StartField.RootNode.InsertBeforeSelf(drawingElement);
-            var imgElement = CreateNewPictureElement(stream, context.MergeField.ParentPart, displaySize, shapeType, sourceRectangle);
-            imageParentElement.Append(imgElement);
           }
         }
       }

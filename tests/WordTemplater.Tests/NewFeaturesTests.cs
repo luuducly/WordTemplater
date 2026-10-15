@@ -107,5 +107,121 @@ namespace WordTemplater.Tests
             // Non-existent path returns null
             Assert.Null(Utils.ResolveToken(data, "company.missing.path"));
         }
+
+        [Fact]
+        public void IfEvaluator_InlineTernary_TruthinessAndComparisons()
+        {
+            var evaluator = new IfEvaluator();
+
+            // 1 parameter: truthy check (return param or empty)
+            Assert.Equal("YES", evaluator.Evaluate(true, new List<object> { "YES" }));
+            Assert.Equal(string.Empty, evaluator.Evaluate(false, new List<object> { "YES" }));
+
+            // 2 parameters: truthy check (ternary trueBranch, falseBranch)
+            Assert.Equal("APPROVED", evaluator.Evaluate(true, new List<object> { "APPROVED", "DENIED" }));
+            Assert.Equal("DENIED", evaluator.Evaluate(false, new List<object> { "APPROVED", "DENIED" }));
+            Assert.Equal("APPROVED", evaluator.Evaluate("true", new List<object> { "APPROVED", "DENIED" }));
+            Assert.Equal("DENIED", evaluator.Evaluate("false", new List<object> { "APPROVED", "DENIED" }));
+            Assert.Equal("APPROVED", evaluator.Evaluate(1, new List<object> { "APPROVED", "DENIED" }));
+            Assert.Equal("DENIED", evaluator.Evaluate(0, new List<object> { "APPROVED", "DENIED" }));
+
+            // 3 parameters: equality check (field == compare ? v1 : v2)
+            Assert.Equal("Gold Tier", evaluator.Evaluate("VIP", new List<object> { "VIP", "Gold Tier", "Standard Tier" }));
+            Assert.Equal("Standard Tier", evaluator.Evaluate("BASIC", new List<object> { "VIP", "Gold Tier", "Standard Tier" }));
+
+            // 4 parameters: comparison operators (op, compareValue, v1, v2)
+            Assert.Equal("PASSED", evaluator.Evaluate(85, new List<object> { ">=", 80, "PASSED", "FAILED" }));
+            Assert.Equal("FAILED", evaluator.Evaluate(75, new List<object> { ">=", 80, "PASSED", "FAILED" }));
+            Assert.Equal("MAX", evaluator.Evaluate(100, new List<object> { "==", 100, "MAX", "NOT MAX" }));
+            Assert.Equal("NOT EQUAL", evaluator.Evaluate("admin", new List<object> { "!=", "guest", "NOT EQUAL", "EQUAL" }));
+        }
+
+        [Fact]
+        public void BarCodeAndQRCode_GenerateValidPngBytes()
+        {
+            var qrBytes = Utils.GetQRCodeImageBytes("https://github.com/luuducly/WordTemplater");
+            Assert.NotNull(qrBytes);
+            Assert.True(qrBytes.Length > 0);
+
+            var barcodeBytes = Utils.GetBarCodeImageBytes("PROD-998877");
+            Assert.NotNull(barcodeBytes);
+            Assert.True(barcodeBytes.Length > 0);
+        }
+
+        [Fact]
+        public void Export_FullRichMediaAndConditional_EmbedsQRBarcodeAndEvaluatesIf()
+        {
+            var templateBytes = TestTemplates.Build(
+                TestTemplates.P(TestTemplates.F("qrcode(QrUrl)")),
+                TestTemplates.P(TestTemplates.F("barcode(ProductSku)")),
+                TestTemplates.P(TestTemplates.F("if(IsActive, 'ACTIVE_USER', 'DISABLED_USER')")),
+                TestTemplates.P(TestTemplates.F("if(Score >= 80, 'HIGH_HONORS', 'STANDARD')"))
+            );
+
+            using var templateStream = new MemoryStream(templateBytes);
+            using var template = new WordTemplate(templateStream);
+
+            var data = new JObject
+            {
+                ["QrUrl"] = "https://github.com/luuducly/WordTemplater",
+                ["ProductSku"] = "SKU-998877",
+                ["IsActive"] = true,
+                ["Score"] = 92
+            };
+
+            using var output = template.Export(data);
+            Assert.NotNull(output);
+
+            using var doc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(output!, false);
+            var imageParts = doc.MainDocumentPart!.ImageParts.ToList();
+            Assert.Equal(2, imageParts.Count);
+
+            var bodyText = doc.MainDocumentPart.Document.Body!.InnerText;
+            Assert.Contains("ACTIVE_USER", bodyText);
+            Assert.DoesNotContain("DISABLED_USER", bodyText);
+            Assert.Contains("HIGH_HONORS", bodyText);
+            Assert.DoesNotContain("STANDARD", bodyText);
+        }
+
+        [Fact]
+        public void Export_FullShowcaseTemplate_GeneratesValidDocument()
+        {
+            var templateBytes = TestTemplates.Build(
+                TestTemplates.P(TestTemplates.T("WORDTEMPLATER SHOWCASE")),
+                TestTemplates.P(TestTemplates.F("image(Logo)")),
+                TestTemplates.P(TestTemplates.F("qrcode(QrUrl)")),
+                TestTemplates.P(TestTemplates.F("barcode(Sku)")),
+                TestTemplates.P(TestTemplates.F("if(IsActive, 'ACTIVE', 'INACTIVE')")),
+                TestTemplates.P(TestTemplates.F("if(Score >= 80, 'HONORS', 'PASS')")),
+                TestTemplates.P(TestTemplates.F("padleft(Id, 6, '0')")),
+                TestTemplates.P(TestTemplates.F("date(Created, 'dd/MM/yyyy')")),
+                TestTemplates.P(TestTemplates.F("currency(Total, 'en-US')"))
+            );
+
+            using var templateStream = new MemoryStream(templateBytes);
+            using var template = new WordTemplate(templateStream);
+
+            var data = new JObject
+            {
+                ["Logo"] = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+                ["QrUrl"] = "https://github.com/luuducly/WordTemplater",
+                ["Sku"] = "SKU-9988",
+                ["IsActive"] = true,
+                ["Score"] = 90,
+                ["Id"] = 42,
+                ["Created"] = "2026-10-15T12:00:00",
+                ["Total"] = 1500.50
+            };
+
+            using var output = template.Export(data);
+            Assert.NotNull(output);
+            using var doc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(output!, false);
+            var text = doc.MainDocumentPart!.Document.Body!.InnerText;
+            Assert.Contains("ACTIVE", text);
+            Assert.Contains("HONORS", text);
+            Assert.Contains("000042", text);
+            Assert.Contains("15/10/2026", text);
+            Assert.Contains("$1,500.50", text);
+        }
     }
 }

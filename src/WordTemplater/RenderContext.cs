@@ -53,15 +53,23 @@ namespace WordTemplater
 
     internal JToken? Resolve(string? path)
     {
-      if (_isLoopItem && path != null)
+      if (_isLoopItem && path != null && FindMetadata(path) is var (name, value))
       {
-        if (string.Equals(path, Constant.CURRENT_INDEX, StringComparison.OrdinalIgnoreCase)) return new JValue((long)(_index + 1));
-        if (string.Equals(path, Constant.IS_FIRST, StringComparison.OrdinalIgnoreCase)) return new JValue(_index == 0);
-        if (string.Equals(path, Constant.IS_LAST, StringComparison.OrdinalIgnoreCase)) return new JValue(_index == _count - 1);
-        if (string.Equals(path, Constant.IS_EVEN, StringComparison.OrdinalIgnoreCase)) return new JValue((_index + 1) % 2 == 0);
-        if (string.Equals(path, Constant.IS_ODD, StringComparison.OrdinalIgnoreCase)) return new JValue((_index + 1) % 2 == 1);
+        // Metadata used to be written into the item under its exact name, so an item property differing from it only in case can still win.
+        var property = string.Equals(path, name, StringComparison.Ordinal) ? null : _item.Property(path, StringComparison.OrdinalIgnoreCase);
+        if (property == null || property.Name == name) return value;
       }
       return Utils.ResolveToken(_item, path);
+    }
+
+    private (string Name, JValue Value)? FindMetadata(string path)
+    {
+      if (string.Equals(path, Constant.CURRENT_INDEX, StringComparison.OrdinalIgnoreCase)) return (Constant.CURRENT_INDEX, new JValue((long)(_index + 1)));
+      if (string.Equals(path, Constant.IS_FIRST, StringComparison.OrdinalIgnoreCase)) return (Constant.IS_FIRST, new JValue(_index == 0));
+      if (string.Equals(path, Constant.IS_LAST, StringComparison.OrdinalIgnoreCase)) return (Constant.IS_LAST, new JValue(_index == _count - 1));
+      if (string.Equals(path, Constant.IS_EVEN, StringComparison.OrdinalIgnoreCase)) return (Constant.IS_EVEN, new JValue((_index + 1) % 2 == 0));
+      if (string.Equals(path, Constant.IS_ODD, StringComparison.OrdinalIgnoreCase)) return (Constant.IS_ODD, new JValue((_index + 1) % 2 == 1));
+      return null;
     }
   }
 

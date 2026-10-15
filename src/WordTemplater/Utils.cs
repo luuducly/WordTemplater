@@ -11,7 +11,7 @@ namespace WordTemplater
   internal class Utils
   {
     // Shared for the process lifetime to reuse connections; PooledConnectionLifetime picks up DNS changes.
-    internal static readonly HttpClient HttpClient = new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) }) { Timeout = TimeSpan.FromSeconds(15) };
+    internal static readonly HttpClient HttpClient = new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2), UseCookies = false }) { Timeout = TimeSpan.FromSeconds(15) };
 
     internal static List<object> PaserParametters(string parametters)
     {

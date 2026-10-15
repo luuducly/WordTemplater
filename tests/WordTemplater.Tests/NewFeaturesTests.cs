@@ -474,11 +474,6 @@ namespace WordTemplater.Tests
             string outPath = Path.Combine(outDir, "Exported_Document.docx");
             File.WriteAllBytes(outPath, ((MemoryStream)output).ToArray());
 
-            string hardcodedPath = "/Users/lyld/.gemini/antigravity-ide/scratch/WordTemplater/examples/WordTemplater.Desktop/bin/Debug/net10.0/Output/Exported_Document.docx";
-            string? dir = Path.GetDirectoryName(hardcodedPath);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllBytes(hardcodedPath, ((MemoryStream)output).ToArray());
-
             using var outDoc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(output!, false);
             // 1. Header has filled text shapes
             var headerXml = outDoc.MainDocumentPart!.HeaderParts.First().Header.OuterXml;

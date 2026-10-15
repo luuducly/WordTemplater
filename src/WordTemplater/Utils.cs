@@ -10,6 +10,9 @@ namespace WordTemplater
 {
   internal class Utils
   {
+    // Shared for the process lifetime to reuse connections; PooledConnectionLifetime picks up DNS changes.
+    internal static readonly HttpClient HttpClient = new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) }) { Timeout = TimeSpan.FromSeconds(15) };
+
     internal static List<object> PaserParametters(string parametters)
     {
       var returnList = new List<object>();
@@ -166,30 +169,10 @@ namespace WordTemplater
              type == typeof(decimal);
     }
 
-    internal static Stream GetQRCodeImage(string data)
-    {
-      var generator = new QRCodeGenerator();
-      var qr = generator.CreateQrCode(data, ECCLevel.L, quietZoneSize: Constant.DEFAULT_QRCODE_BORDER);
-      var info = new SKImageInfo(Constant.DEFAULT_QRCODE_SIZE, Constant.DEFAULT_QRCODE_SIZE);
-      using var surface = SKSurface.Create(info);
-      var canvas = surface.Canvas;
-      canvas.Render(qr, info.Width, info.Height, Constant.DEFAULT_DARK_COLOR, Constant.DEFAULT_LIGHT_COLOR);
-      using (var image = surface.Snapshot())
-      {
-        using (var imgData = image.Encode(SKEncodedImageFormat.Png, 100))
-        {
-          Stream stream = new MemoryStream();
-          imgData.SaveTo(stream);
-          stream.Position = 0;
-          return stream;
-        }
-      }
-    }
-
     internal static byte[] GetQRCodeImageBytes(string data)
     {
-      var generator = new QRCodeGenerator();
-      var qr = generator.CreateQrCode(data, ECCLevel.L, quietZoneSize: Constant.DEFAULT_QRCODE_BORDER);
+      using var generator = new QRCodeGenerator();
+      using var qr = generator.CreateQrCode(data, ECCLevel.L, quietZoneSize: Constant.DEFAULT_QRCODE_BORDER);
       var info = new SKImageInfo(Constant.DEFAULT_QRCODE_SIZE, Constant.DEFAULT_QRCODE_SIZE);
       using var surface = SKSurface.Create(info);
       var canvas = surface.Canvas;
@@ -203,25 +186,14 @@ namespace WordTemplater
       }
     }
 
-    internal static Stream? GetBarCodeImage(string data)
-    {
-      var barCode = new Barcode();
-      barCode.Height = Constant.DEFAULT_BARCODE_HIGHT;
-      barCode.BarWidth = Constant.DEFAULT_BARCODE_BARWIDTH;
-      var img = barCode.Encode(BarcodeStandard.Type.Code128, data, Constant.DEFAULT_DARK_COLOR, Constant.DEFAULT_LIGHT_COLOR);
-      SKData encoded = img.Encode(SKEncodedImageFormat.Png, 100);
-      var stream = encoded.AsStream();
-      stream.Position = 0;
-      return stream;
-    }
-
     internal static byte[]? GetBarCodeImageBytes(string data)
     {
-      var barCode = new Barcode();
+      // Barcode owns (and disposes) the SKImage returned by Encode, so the image must be encoded before it is disposed.
+      using var barCode = new Barcode();
       barCode.Height = Constant.DEFAULT_BARCODE_HIGHT;
       barCode.BarWidth = Constant.DEFAULT_BARCODE_BARWIDTH;
       var img = barCode.Encode(BarcodeStandard.Type.Code128, data, Constant.DEFAULT_DARK_COLOR, Constant.DEFAULT_LIGHT_COLOR);
-      SKData encoded = img.Encode(SKEncodedImageFormat.Png, 100);
+      using SKData encoded = img.Encode(SKEncodedImageFormat.Png, 100);
       return encoded.ToArray();
     }
 
@@ -270,26 +242,12 @@ namespace WordTemplater
     private static uint _initUint = 10000U;
     internal static uint GetUintId()
     {
-      return _initUint++;
+      return Interlocked.Increment(ref _initUint) - 1;
     }
 
     internal static string GetUniqueStringID()
     {
       return "r" + Guid.NewGuid().ToString().Replace("-", "");
-    }
-
-    internal static Stream CloneStream(Stream stream)
-    {
-      if (stream != null && stream.CanSeek)
-      {
-        stream.Position = 0;
-        MemoryStream newStream = new MemoryStream();
-        stream.CopyTo(newStream);
-        stream.Position = 0;
-        newStream.Position = 0;
-        return newStream;
-      }
-      return null;
     }
 
     internal static int GetInt(string str, int? defaultValue = 0)

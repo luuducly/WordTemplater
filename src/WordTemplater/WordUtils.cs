@@ -196,7 +196,7 @@ namespace WordTemplater
     internal static Size GetImageSize(Stream stream)
     {
       stream.Position = 0;
-      var image = SKImage.FromEncodedData(stream);
+      using var image = SKImage.FromEncodedData(stream);
       stream.Position = 0;
       if (image != null)
       {

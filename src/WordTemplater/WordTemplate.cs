@@ -21,10 +21,11 @@ namespace WordTemplater
 {
   public class WordTemplate : IDisposable
   {
-    private List<RenderContext> _renderContexts;
     private Stream _sourceStream;
+    private readonly byte[] _templateBytes;
     private Dictionary<string, ITemplater> _templaterFactory;
     private ExportOptions _defaultOptions = new ExportOptions();
+    private bool _disposed;
 
     /// <summary>
     /// To init word template to export.
@@ -40,7 +41,15 @@ namespace WordTemplater
         throw new ArgumentNullException(nameof(sourceStream));
       }
       _sourceStream = sourceStream;
-      _renderContexts = new List<RenderContext>();
+      if (sourceStream.CanSeek)
+        sourceStream.Position = 0;
+      using (MemoryStream buffer = new MemoryStream())
+      {
+        sourceStream.CopyTo(buffer);
+        _templateBytes = buffer.ToArray();
+      }
+      if (sourceStream.CanSeek)
+        sourceStream.Position = 0;
       _templaterFactory = new Dictionary<string, ITemplater>();
       this.RegisterTemplater(string.Empty, new DefaultTemplater());
       this.RegisterTemplater(FunctionName.Sub, new SubTemplater());
@@ -123,36 +132,34 @@ namespace WordTemplater
     /// </summary>
     public Stream? Export(object data, ExportOptions options)
     {
+      ObjectDisposedException.ThrowIf(_disposed, this);
       if (data != null && options != null)
       {
-        _renderContexts.Clear();
-        Stream? targetStream = Utils.CloneStream(_sourceStream);
-        if (targetStream != null)
+        Stream targetStream = new MemoryStream();
+        targetStream.Write(_templateBytes);
+        targetStream.Position = 0;
+        using (WordprocessingDocument targetDocument = WordprocessingDocument.Open(targetStream, true))
         {
-          using (WordprocessingDocument targetDocument = WordprocessingDocument.Open(targetStream, true))
+          if (options.RemoveFallback)
+            WordUtils.RemoveFallbackElements(targetDocument);
+          if (data is not JObject) data = JObject.FromObject(data);
+
+          if (!string.IsNullOrEmpty(options.WatermarkText))
           {
-            if (options.RemoveFallback)
-              WordUtils.RemoveFallbackElements(targetDocument);
-            if (data is not JObject) data = JObject.FromObject(data);
-
-            if (!string.IsNullOrEmpty(options.WatermarkText))
-            {
-              WordUtils.AddTextWatermark(
-                  targetDocument,
-                  options.WatermarkText,
-                  options.WatermarkColor,
-                  options.WatermarkAngle,
-                  options.WatermarkFontSize,
-                  options.WatermarkFontFamily);
-            }
-
-            PrepareRenderContext(targetDocument);
-            RenderTemplate(_renderContexts.ToList(), data as JObject, options);
-            LoopTemplater.FillData(_renderContexts, data as JObject);
+            WordUtils.AddTextWatermark(
+                targetDocument,
+                options.WatermarkText,
+                options.WatermarkColor,
+                options.WatermarkAngle,
+                options.WatermarkFontSize,
+                options.WatermarkFontFamily);
           }
+
+          List<RenderContext> renderContexts = PrepareRenderContext(targetDocument);
+          RenderTemplate(renderContexts, renderContexts.ToList(), data as JObject, options);
+          LoopTemplater.FillData(renderContexts, new DataScope(data as JObject));
         }
-        if (targetStream != null)
-          targetStream.Position = 0;
+        targetStream.Position = 0;
         return targetStream;
       }
       return null;
@@ -187,31 +194,32 @@ namespace WordTemplater
     }
 
 
-    private void PrepareRenderContext(WordprocessingDocument document)
+    private List<RenderContext> PrepareRenderContext(WordprocessingDocument document)
     {
-      _renderContexts.Clear();
+      List<RenderContext> renderContexts = new List<RenderContext>();
       MainDocumentPart? mainPart = document.MainDocumentPart;
-      if (mainPart == null) return;
+      if (mainPart == null) return renderContexts;
       var documentPart = mainPart.Document;
-      if (documentPart == null) return;
+      if (documentPart == null) return renderContexts;
 
       //find bookmark templates in header parts
       foreach (HeaderPart headerPart in mainPart.HeaderParts)
       {
         if (headerPart.Header != null)
-          _renderContexts.AddRange(PrepareRenderContext(headerPart.Header, headerPart));
+          renderContexts.AddRange(PrepareRenderContext(headerPart.Header, headerPart));
       }
 
       //find bookmark templates in body parts
       if (documentPart.Body != null)
-        _renderContexts.AddRange(PrepareRenderContext(documentPart.Body, mainPart));
+        renderContexts.AddRange(PrepareRenderContext(documentPart.Body, mainPart));
 
       //find bookmark templates in footer parts
       foreach (FooterPart footerPart in mainPart.FooterParts)
       {
         if (footerPart.Footer != null)
-          _renderContexts.AddRange(PrepareRenderContext(footerPart.Footer, footerPart));
+          renderContexts.AddRange(PrepareRenderContext(footerPart.Footer, footerPart));
       }
+      return renderContexts;
     }
 
     private List<RenderContext> PrepareRenderContext(OpenXmlElement element, TypedOpenXmlPart parentPart)
@@ -434,7 +442,7 @@ namespace WordTemplater
       }
     }
 
-    private void RenderTemplate(List<RenderContext> renderContexts, JObject dataObj, ExportOptions? options = null)
+    private void RenderTemplate(List<RenderContext> rootContexts, List<RenderContext> renderContexts, JObject dataObj, ExportOptions? options = null)
     {
       if (dataObj != null)
       {
@@ -445,18 +453,18 @@ namespace WordTemplater
           {
             if (rc.Templater.Evaluator is LoopEvaluator && value is JArray)
             {
-              RenderTemplate(rc, (JArray)value, options);
+              RenderTemplate(rootContexts, rc, (JArray)value, options);
             }
             else if (rc.Templater.Evaluator is ConditionEvaluator)
             {
-              RenderTemplate(rc.ChildNodes.ToList(), dataObj, options);
+              RenderTemplate(rootContexts, rc.ChildNodes.ToList(), dataObj, options);
             }
           }
         }
       }
     }
 
-    private void RenderTemplate(RenderContext rc, JArray arrData, ExportOptions? options = null)
+    private void RenderTemplate(List<RenderContext> rootContexts, RenderContext rc, JArray arrData, ExportOptions? options = null)
     {
       var template = GetRepeatingTemplate(rc);
       if (arrData.Count == 0)
@@ -532,24 +540,24 @@ namespace WordTemplater
               }
               else if (rc.Parent == null)
               {
-                var pos = _renderContexts.IndexOf(lastRC);
+                var pos = rootContexts.IndexOf(lastRC);
                 if (pos > -1)
                 {
-                  if (pos < _renderContexts.Count - 1)
-                    _renderContexts.Insert(pos + 1, ct);
+                  if (pos < rootContexts.Count - 1)
+                    rootContexts.Insert(pos + 1, ct);
                   else
-                    _renderContexts.Add(ct);
+                    rootContexts.Add(ct);
                   lastRC = ct;
                 }
               }
               var value = arrData[j];
               if (ct.ChildNodes.Count > 0)
-                RenderTemplate(ct.ChildNodes.ToList(), value as JObject, options);
+                RenderTemplate(rootContexts, ct.ChildNodes.ToList(), value as JObject, options);
             }
 
             if (rc.Parent == null)
             {
-              _renderContexts.Remove(rc);
+              rootContexts.Remove(rc);
             }
             else
             {
@@ -693,6 +701,7 @@ namespace WordTemplater
 
     public void Dispose()
     {
+      _disposed = true;
       if (_sourceStream != null)
         _sourceStream.Dispose();
     }

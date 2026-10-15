@@ -19,11 +19,49 @@ namespace WordTemplater
     internal int Index { get; set; }
     internal List<RenderContext> ChildNodes { get; set; }
 
-    internal JObject CurrentItem { get; set; }
+    internal DataScope CurrentItem { get; set; }
 
     public RenderContext()
     {
       ChildNodes = new List<RenderContext>();
+    }
+  }
+
+  /// <summary>
+  /// The data item fields are resolved against, plus its position when it is a loop item.
+  /// Loop metadata (_index, _first, _last, _even, _odd) is resolved here instead of being written into the caller's data.
+  /// </summary>
+  internal class DataScope
+  {
+    private readonly JObject _item;
+    private readonly bool _isLoopItem;
+    private readonly int _index;
+    private readonly int _count;
+
+    internal DataScope(JObject item)
+    {
+      _item = item;
+    }
+
+    internal DataScope(JObject item, int index, int count)
+    {
+      _item = item;
+      _isLoopItem = true;
+      _index = index;
+      _count = count;
+    }
+
+    internal JToken? Resolve(string? path)
+    {
+      if (_isLoopItem && path != null)
+      {
+        if (string.Equals(path, Constant.CURRENT_INDEX, StringComparison.OrdinalIgnoreCase)) return new JValue((long)(_index + 1));
+        if (string.Equals(path, Constant.IS_FIRST, StringComparison.OrdinalIgnoreCase)) return new JValue(_index == 0);
+        if (string.Equals(path, Constant.IS_LAST, StringComparison.OrdinalIgnoreCase)) return new JValue(_index == _count - 1);
+        if (string.Equals(path, Constant.IS_EVEN, StringComparison.OrdinalIgnoreCase)) return new JValue((_index + 1) % 2 == 0);
+        if (string.Equals(path, Constant.IS_ODD, StringComparison.OrdinalIgnoreCase)) return new JValue((_index + 1) % 2 == 1);
+      }
+      return Utils.ResolveToken(_item, path);
     }
   }
 

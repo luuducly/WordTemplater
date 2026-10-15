@@ -117,7 +117,7 @@ namespace WordTemplater.Tests
                 if (pair.RelationshipId != id) continue;
                 var internalPart = pair.OpenXmlPart;
                 return IsVolatileXmlPart(internalPart)
-                    ? internalPart.ContentType
+                    ? internalPart.ContentType + " " + internalPart.Uri
                     : internalPart.ContentType + " " + Hash(internalPart);
             }
             var hyperlink = source.HyperlinkRelationships.FirstOrDefault(r => r.Id == id);

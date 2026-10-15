@@ -35,7 +35,9 @@ namespace WordTemplater.Tests
             var baseline = BodyText(template, TestTemplates.Data(Rows));
 
             var shared = TestTemplates.Data(Rows);
+            var sharedBefore = shared.ToString();
             RunConcurrently(template, baseline, _ => shared);
+            Assert.Equal(sharedBefore, shared.ToString());
         }
 
         private static void RunConcurrently(WordTemplate template, string baseline, Func<int, JObject> dataFor)

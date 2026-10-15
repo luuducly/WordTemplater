@@ -290,23 +290,13 @@ namespace WordTemplater
           if (arrItem is JObject)
           {
             var arrItemJob = arrItem as JObject;
-            arrItemJob[Constant.CURRENT_INDEX] = context.Index + 1;
-            arrItemJob[Constant.IS_FIRST] = (context.Index == 0);
-            arrItemJob[Constant.IS_LAST] = (context.Index == arr.Count - 1);
-            arrItemJob[Constant.IS_EVEN] = ((context.Index + 1) % 2 == 0);
-            arrItemJob[Constant.IS_ODD] = ((context.Index + 1) % 2 == 1);
-            FillData(context.ChildNodes, arrItemJob);
+            FillData(context.ChildNodes, new DataScope(arrItemJob, context.Index, arr.Count));
           }
           else if (arrItem is JValue)
           {
             var jval = new JObject();
             jval[Constant.CURRENT_NODE] = arrItem as JValue;
-            jval[Constant.CURRENT_INDEX] = context.Index + 1;
-            jval[Constant.IS_FIRST] = (context.Index == 0);
-            jval[Constant.IS_LAST] = (context.Index == arr.Count - 1);
-            jval[Constant.IS_EVEN] = ((context.Index + 1) % 2 == 0);
-            jval[Constant.IS_ODD] = ((context.Index + 1) % 2 == 1);
-            FillData(context.ChildNodes, jval);
+            FillData(context.ChildNodes, new DataScope(jval, context.Index, arr.Count));
           }
           context.MergeField.StartField?.RemoveAll(true);
           context.MergeField.EndField?.RemoveAll(true);
@@ -314,11 +304,11 @@ namespace WordTemplater
       }
     }
 
-    internal static void FillData(List<RenderContext> renderContexts, JObject data)
+    internal static void FillData(List<RenderContext> renderContexts, DataScope data)
     {
       foreach (var context in renderContexts)
       {
-        var value = Utils.ResolveToken(data, context.FieldName);
+        var value = data.Resolve(context.FieldName);
         context.CurrentItem = data;
         context.Templater?.FillData(value, context);
       }
@@ -392,8 +382,7 @@ namespace WordTemplater
       {
         try
         {
-          using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-          var downloaded = client.GetByteArrayAsync(uri).GetAwaiter().GetResult();
+          var downloaded = Utils.HttpClient.GetByteArrayAsync(uri).GetAwaiter().GetResult();
           return new MemoryStream(downloaded);
         }
         catch { }

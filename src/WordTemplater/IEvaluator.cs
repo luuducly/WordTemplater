@@ -542,11 +542,6 @@ namespace WordTemplater
 
   internal class MermaidEvaluator : ImageEvaluator
   {
-    private static readonly HttpClient _httpClient = new HttpClient
-    {
-      Timeout = TimeSpan.FromSeconds(15)
-    };
-
     public override string Evaluate(object fieldValue, List<object> parameters)
     {
       if (fieldValue != null)
@@ -560,7 +555,7 @@ namespace WordTemplater
               "text/plain"
           );
 
-          var response = _httpClient.PostAsync(url, content).GetAwaiter().GetResult();
+          using var response = Utils.HttpClient.PostAsync(url, content).GetAwaiter().GetResult();
           if (response.IsSuccessStatusCode)
           {
             byte[] imageBytes = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();

@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.CompilerServices;
@@ -53,17 +55,18 @@ namespace WordTemplater.Tests
             using (template.Export(TestTemplates.Data(5, true))) { } // warm-up: static Skia/QR/barcode caches
 
             HeapAfterFullGc(); // drain finalizers of anything left over from the warm-up
-            int before = LiveCount(instances);
+            var before = LiveByType(instances);
 
             // Measure right after the export without letting a GC (and the SKObject finalizers it triggers)
             // hide undisposed objects. If the no-GC region cannot be entered or is exceeded, the measurement
             // can only under-count leaks, never over-count them.
-            int after;
+            const int rows = 50;
+            Dictionary<string, int> after;
             bool noGcRegion = TryStartNoGcRegion();
             try
             {
-                using (template.Export(TestTemplates.Data(50, true))) { }
-                after = LiveCount(instances);
+                using (template.Export(TestTemplates.Data(rows, true))) { }
+                after = LiveByType(instances);
             }
             finally
             {
@@ -73,9 +76,32 @@ namespace WordTemplater.Tests
                 }
             }
 
-            Assert.True(after - before == 0,
-                $"{extraCellCode}: {after - before} SkiaSharp native objects left undisposed by one Export of 50 rows (live before={before}, after={after}, no-GC region={noGcRegion}).");
+            var allowance = ThirdPartyResidue(extraCellCode, rows);
+            var delta = after.Keys.Union(before.Keys)
+                .Select(type => (Type: type, Delta: after.GetValueOrDefault(type) - before.GetValueOrDefault(type)))
+                .Where(x => x.Delta != 0)
+                .OrderBy(x => x.Type, StringComparer.Ordinal)
+                .ToList();
+            var violations = delta.Where(x => x.Delta > allowance.GetValueOrDefault(x.Type)).ToList();
+
+            Assert.True(violations.Count == 0,
+                $"{extraCellCode}: SkiaSharp native objects left undisposed by one Export of {rows} rows: "
+                + string.Join(", ", delta.Select(x => $"{x.Type} +{x.Delta}" + (allowance.ContainsKey(x.Type) ? $" (allowed {allowance[x.Type]})" : string.Empty)))
+                + $" [live before={before.Values.Sum()}, after={after.Values.Sum()}, no-GC region={noGcRegion}].");
         }
+
+        /// <summary>
+        /// Objects that remain live even when WordTemplater disposes everything it creates.
+        /// BarcodeLib 3.0.3 itself leaves one SKImage per Barcode.Encode call undisposed (even when the Barcode,
+        /// the returned SKImage and the encoded SKData are all disposed), and its label font holds one SKTypeface
+        /// wrapper (re-created after a GC, but it does not grow with the row count).
+        /// Measured with a probe that disposes every object WordTemplater owns; QR code generation leaves nothing.
+        /// Remove this allowance if BarcodeLib is upgraded/replaced with one that does not leak.
+        /// </summary>
+        private static Dictionary<string, int> ThirdPartyResidue(string extraCellCode, int rows) =>
+            extraCellCode.Contains("barcode", StringComparison.OrdinalIgnoreCase)
+                ? new Dictionary<string, int> { ["SKImage"] = rows, ["SKTypeface"] = 1 }
+                : new Dictionary<string, int>();
 
         [Fact]
         public void Export_RepeatedOnCachedTemplate_DoesNotGrowManagedHeap()
@@ -148,12 +174,19 @@ namespace WordTemplater.Tests
             return instances!;
         }
 
-        private static int LiveCount(IDictionary instances)
+        private static Dictionary<string, int> LiveByType(IDictionary instances)
         {
+            var result = new Dictionary<string, int>(StringComparer.Ordinal);
             lock (instances)
             {
-                return instances.Count;
+                foreach (DictionaryEntry entry in instances)
+                {
+                    var target = entry.Value is WeakReference weak ? weak.Target : entry.Value;
+                    var type = target?.GetType().Name ?? "(collected)";
+                    result[type] = result.GetValueOrDefault(type) + 1;
+                }
             }
+            return result;
         }
     }
 }

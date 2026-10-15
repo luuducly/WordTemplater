@@ -2206,7 +2206,7 @@ REL3 -> image/png 96ad03f4fe15aa5f
 REL4 -> image/png f8d1b825f52adf7c
 REL5 -> image/png f1737c48cce8d1e8
 REL6 -> text/html 5d06c53fde38299b
-REL7 -> application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml
+REL7 -> application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml /word/header1.xml
 === parts ===
 /customXml/item1.xml application/xml c997c1048dc23425
 /customXml/itemProps1.xml application/vnd.openxmlformats-officedocument.customXmlProperties+xml 75ef04a79a693a17

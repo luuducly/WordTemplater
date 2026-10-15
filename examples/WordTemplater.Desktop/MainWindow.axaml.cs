@@ -127,47 +127,47 @@ public partial class MainWindow : Window
                 // 1. Header Fields (Text Shapes over dots in Header)
                 InvoiceForm = "01GTKT0/001",
                 InvoiceSerial = "AA/26E",
-                InvoiceNo = 4589,
+                InvoiceNo = 1234,
                 BillDay = DateTime.Now.ToString("dd"),
                 BillMonth = DateTime.Now.ToString("MM"),
 
                 // 2. Customer / Buyer Body Fields (Text Shapes over dots in Body)
-                CustomerName = "Ông Nguyễn Hoàng Nam",
-                CustomerCompany = "Công ty Cổ phần Công nghệ & Viễn thông Quốc tế",
-                CustomerTaxCode = "0109887766-001",
-                CustomerAddress = "Tòa nhà Center Point, 106 Nguyễn Văn Trỗi, P. 8, Phú Nhuận, TP.HCM",
+                CustomerName = "Nguyễn Văn A",
+                CustomerCompany = "Công ty TNHH Mẫu Việt Nam (Example Corp)",
+                CustomerTaxCode = "0100000000-001",
+                CustomerAddress = "Số 1 Đường Thí Nghiệm, Phường Demo, Quận Ví Dụ, TP. Hà Nội",
                 PaymentMethod = "Chuyển khoản (TM/CK)",
-                BankAccount = "19038899887701 (Techcombank)",
+                BankAccount = "0000 0000 0000 0000 (Ngân hàng Mẫu)",
 
                 // 3. Pre-printed Table Row Items
-                Item1_Name = "Máy chủ Dell PowerEdge R750 (2x Intel Xeon Gold, 128GB RAM)",
+                Item1_Name = "Thiết bị phần cứng máy chủ thử nghiệm",
                 Item1_Unit = "Bộ",
                 Item1_Qty = 2,
-                Item1_Price = 85000000,
-                Item1_Amount = 170000000,
+                Item1_Price = 50000000,
+                Item1_Amount = 100000000,
 
-                Item2_Name = "Thiết bị mạng Cisco Catalyst 9200L 48 Ports PoE+",
+                Item2_Name = "Thiết bị mạng chuyển mạch thử nghiệm",
                 Item2_Unit = "Chiếc",
                 Item2_Qty = 1,
-                Item2_Price = 42000000,
-                Item2_Amount = 42000000,
+                Item2_Price = 20000000,
+                Item2_Amount = 20000000,
 
-                Item3_Name = "Gói dịch vụ triển khai hạ tầng & cấu hình bảo mật 24/7",
+                Item3_Name = "Gói dịch vụ triển khai và bảo trì mẫu",
                 Item3_Unit = "Gói",
                 Item3_Qty = 1,
-                Item3_Price = 18000000,
-                Item3_Amount = 18000000,
+                Item3_Price = 10000000,
+                Item3_Amount = 10000000,
 
                 // 4. Financial Totals (Text Shapes over dots in Summary)
-                Subtotal = 230000000,
-                VatAmount = 23000000,
-                TotalAmount = 253000000,
-                TotalInWords = "Hai trăm năm mươi ba triệu đồng chẵn.",
+                Subtotal = 130000000,
+                VatAmount = 13000000,
+                TotalAmount = 143000000,
+                TotalInWords = "Một trăm bốn mươi ba triệu đồng chẵn.",
 
                 // 5. Footer Signatures (Text Shapes over dots in Footer)
-                BuyerSign = "Nguyễn Hoàng Nam",
-                DelivererSign = "Lê Thanh Tùng",
-                ManagerSign = "Trần Đình Trọng"
+                BuyerSign = "Nguyễn Văn A",
+                DelivererSign = "Trần Văn B",
+                ManagerSign = "Lê Văn C"
             };
 
             TxtJsonData.Text = JsonConvert.SerializeObject(preprintedData, Formatting.Indented);
@@ -628,8 +628,8 @@ public partial class MainWindow : Window
             // 1. Header with exact text shapes over pre-printed dots
             var headerPart = main.AddNewPart<HeaderPart>();
             headerPart.Header = new Header(
-                P(T("CÔNG TY CỔ PHẦN THIẾT BỊ & CÔNG NGHỆ Á CHÂU", true, "1E293B", "24")),
-                P(T("MST: 0101234567-001  |  ĐC: 456 Hoàng Hoa Thám, Ba Đình, Hà Nội  |  Hotline: 1900-6868", false, "64748B", "18")),
+                P(T("CÔNG TY TNHH PHÁT TRIỂN CÔNG NGHỆ MẪU (EXAMPLE CORP)", true, "1E293B", "24")),
+                P(T("MST: 0100000000-001  |  ĐC: Số 1 Đường Thí Nghiệm, Phường Demo, TP. Hà Nội  |  Hotline: 1900-0000", false, "64748B", "18")),
                 P(
                     T("Mẫu số: ..................       Ký hiệu: ..................       Số: ..................", false, "475569", "20"),
                     CreateTextShape("InvoiceForm", leftPt: 45, topPt: -1, widthPt: 85, heightPt: 16, fontColor: "1E293B", bold: true),

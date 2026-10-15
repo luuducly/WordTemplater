@@ -279,8 +279,8 @@ namespace WordTemplater.Tests
                 // 1. Header with exact text shapes over pre-printed dots
                 var headerPart = main.AddNewPart<HeaderPart>();
                 headerPart.Header = new Header(
-                    P(T("CÔNG TY CỔ PHẦN THIẾT BỊ & CÔNG NGHỆ Á CHÂU")),
-                    P(T("MST: 0101234567-001  |  ĐC: 456 Hoàng Hoa Thám, Ba Đình, Hà Nội")),
+                    P(T("CÔNG TY TNHH PHÁT TRIỂN CÔNG NGHỆ MẪU (EXAMPLE CORP)")),
+                    P(T("MST: 0100000000-001  |  ĐC: Số 1 Đường Thí Nghiệm, Phường Demo, TP. Hà Nội")),
                     P(
                         T("Mẫu số: ..................       Ký hiệu: ..................       Số: .................."),
                         CreateDrawingMLTextShape("InvoiceForm", leftPt: 45, topPt: -1, widthPt: 85, heightPt: 16, fontColor: "1E293B", bold: true),

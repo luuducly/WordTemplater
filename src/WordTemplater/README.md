@@ -31,12 +31,12 @@ No Microsoft Office installation or COM Interop required. Runs seamlessly on Win
 ## Installation
 
 ```bash
-dotnet add package WordTemplater --version 2.16
+dotnet add package WordTemplater --version 2.1.6
 ```
 
 ### PackageReference
 ```xml
-<PackageReference Include="WordTemplater" Version="2.16" />
+<PackageReference Include="WordTemplater" Version="2.1.6" />
 ```
 
 ---

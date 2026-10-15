@@ -4,10 +4,10 @@
     <OutputType>Library</OutputType>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
-	<Version>2.16.0</Version>
-	<PackageVersion>2.16.0</PackageVersion>
-	<AssemblyVersion>2.16.0.0</AssemblyVersion>
-	<FileVersion>2.16.0.0</FileVersion>
+	<Version>2.1.6</Version>
+	<PackageVersion>2.1.6</PackageVersion>
+	<AssemblyVersion>2.1.6.0</AssemblyVersion>
+	<FileVersion>2.1.6.0</FileVersion>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
 	<RepositoryUrl>https://github.com/luuducly/WordTemplater</RepositoryUrl>

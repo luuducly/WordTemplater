@@ -1,0 +1,162 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WordTemplater.Desktop.MainWindow"
+        Title="WordTemplater Studio — Cross-Platform Template Tester"
+        Width="1150" Height="820"
+        MinWidth="950" MinHeight="680"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#1E293B" Padding="20,14" BorderBrush="#334155" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="2">
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="📄 WordTemplater Studio" FontSize="18" FontWeight="Bold" Foreground="#F8FAFC"/>
+                        <Border Background="#3B82F6" CornerRadius="4" Padding="6,2">
+                            <TextBlock Text="v2.1.6" FontSize="11" FontWeight="SemiBold" Foreground="White"/>
+                        </Border>
+                        <Border Background="#10B981" CornerRadius="4" Padding="6,2">
+                            <TextBlock Text="Cross-Platform" FontSize="11" FontWeight="SemiBold" Foreground="White"/>
+                        </Border>
+                    </StackPanel>
+                    <TextBlock Text="Test .docx document templating with custom JSON data and real-time export on macOS, Linux, and Windows" 
+                               FontSize="12" Foreground="#94A3B8"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button Name="BtnOpenOutputFolder" Content="📁 Open Output Folder" Click="OnOpenOutputFolderClick" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Body -->
+        <Grid Grid.Row="1" ColumnDefinitions="3*,2*" Margin="16">
+            <!-- Left Column: Template & JSON Data -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" Margin="0,0,10,0">
+                <!-- Template Selection Card -->
+                <Border Grid.Row="0" Background="#0F172A" CornerRadius="8" Padding="14" Margin="0,0,0,12" BorderBrush="#334155" BorderThickness="1">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="1. Template Source" FontWeight="SemiBold" FontSize="14" Foreground="#E2E8F0"/>
+                        <ComboBox Name="ComboTemplates" HorizontalAlignment="Stretch" SelectionChanged="OnTemplateSelectionChanged">
+                            <ComboBoxItem Content="📄 Built-in Invoice Template (Tables, Zebra, Currency, Watermark)" Tag="invoice" IsSelected="True"/>
+                            <ComboBoxItem Content="👤 Built-in Employee Summary (Deep JSON, Evaluators, Dates)" Tag="employee"/>
+                            <ComboBoxItem Content="📁 Browse Custom DOCX File..." Tag="custom"/>
+                        </ComboBox>
+
+                        <Grid ColumnDefinitions="*,Auto" Name="PanelCustomTemplate" IsVisible="False">
+                            <TextBox Grid.Column="0" Name="TxtCustomTemplatePath" PlaceholderText="Path to custom .docx template..." Margin="0,0,8,0"/>
+                            <Button Grid.Column="1" Content="Browse..." Click="OnBrowseCustomTemplateClick"/>
+                        </Grid>
+
+                        <TextBlock Name="TxtTemplateInfo" Text="Contains: «table(Items)», «_index», «upper(Description)», «currency(Price)», «date(Date)»" 
+                                   FontSize="11" Foreground="#64748B" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- JSON Data Editor Header -->
+                <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,6">
+                    <TextBlock Grid.Column="0" Text="2. Input JSON Data" FontWeight="SemiBold" FontSize="14" Foreground="#E2E8F0" VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Content="✨ Format JSON" Click="OnFormatJsonClick" Margin="0,0,6,0" FontSize="11" Padding="8,4"/>
+                    <Button Grid.Column="2" Content="🔄 Reset Sample" Click="OnResetSampleDataClick" FontSize="11" Padding="8,4"/>
+                </Grid>
+
+                <!-- JSON Editor Box -->
+                <Border Grid.Row="2" Background="#0B0F19" CornerRadius="8" BorderBrush="#334155" BorderThickness="1" Padding="2">
+                    <TextBox Name="TxtJsonData" AcceptsReturn="True" AcceptsTab="True" 
+                             FontFamily="Consolas, Menlo, Monaco, Courier New, monospace" FontSize="12"
+                             TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                             Background="Transparent" BorderThickness="0" Foreground="#E2E8F0"/>
+                </Border>
+            </Grid>
+
+            <!-- Right Column: Options & Actions -->
+            <ScrollViewer Grid.Column="1" Margin="10,0,0,0">
+                <StackPanel Spacing="12">
+                    <!-- Export Options Card -->
+                    <Border Background="#0F172A" CornerRadius="8" Padding="14" BorderBrush="#334155" BorderThickness="1">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="3. Export Options" FontWeight="SemiBold" FontSize="14" Foreground="#E2E8F0"/>
+                            
+                            <!-- Watermark Section -->
+                            <CheckBox Name="ChkWatermark" Content="Enable Dynamic Watermark" IsChecked="True"/>
+                            
+                            <StackPanel Name="PanelWatermarkOptions" Spacing="8" Margin="20,0,0,0"
+                                        IsVisible="{Binding #ChkWatermark.IsChecked}">
+                                <Grid ColumnDefinitions="Auto,*" Margin="0,2">
+                                    <TextBlock Grid.Column="0" Text="Text:" Width="70" VerticalAlignment="Center" Foreground="#94A3B8"/>
+                                    <TextBox Grid.Column="1" Name="TxtWatermarkText" Text="PAID"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="Auto,*" Margin="0,2">
+                                    <TextBlock Grid.Column="0" Text="Color (Hex):" Width="70" VerticalAlignment="Center" Foreground="#94A3B8"/>
+                                    <TextBox Grid.Column="1" Name="TxtWatermarkColor" Text="10B981"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="Auto,*" Margin="0,2">
+                                    <TextBlock Grid.Column="0" Text="Angle (°):" Width="70" VerticalAlignment="Center" Foreground="#94A3B8"/>
+                                    <TextBox Grid.Column="1" Name="TxtWatermarkAngle" Text="-45"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <Separator Background="#334155" Height="1" Margin="0,4"/>
+
+                            <!-- Zebra Striping Section -->
+                            <CheckBox Name="ChkZebraStriping" Content="Enable Table Zebra Striping" IsChecked="True"/>
+                            
+                            <StackPanel Name="PanelZebraOptions" Spacing="8" Margin="20,0,0,0"
+                                        IsVisible="{Binding #ChkZebraStriping.IsChecked}">
+                                <Grid ColumnDefinitions="Auto,*" Margin="0,2">
+                                    <TextBlock Grid.Column="0" Text="Odd Row:" Width="70" VerticalAlignment="Center" Foreground="#94A3B8"/>
+                                    <TextBox Grid.Column="1" Name="TxtZebraOddColor" Text="F1F5F9"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="Auto,*" Margin="0,2">
+                                    <TextBlock Grid.Column="0" Text="Even Row:" Width="70" VerticalAlignment="Center" Foreground="#94A3B8"/>
+                                    <TextBox Grid.Column="1" Name="TxtZebraEvenColor" Text="FFFFFF"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Output File Destination Card -->
+                    <Border Background="#0F172A" CornerRadius="8" Padding="14" BorderBrush="#334155" BorderThickness="1">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="4. Output File Destination" FontWeight="SemiBold" FontSize="14" Foreground="#E2E8F0"/>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBox Grid.Column="0" Name="TxtOutputPath" Text="" PlaceholderText="Output .docx file path..." Margin="0,0,8,0"/>
+                                <Button Grid.Column="1" Content="Browse..." Click="OnBrowseOutputPathClick"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Action Buttons Card -->
+                    <Border Background="#0F172A" CornerRadius="8" Padding="14" BorderBrush="#334155" BorderThickness="1">
+                        <StackPanel Spacing="10">
+                            <Button Name="BtnExport" Content="⚡ Generate &amp; Export Document" 
+                                    Click="OnExportDocumentClick"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                    Background="#2563EB" Foreground="White" FontWeight="Bold" FontSize="14" Height="42"/>
+                            
+                            <Button Name="BtnOpenFile" Content="📖 Open Exported Document (.docx)" 
+                                    Click="OnOpenFileClick" IsEnabled="False"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                    Background="#059669" Foreground="White" FontWeight="SemiBold" FontSize="13" Height="36"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Logs and Status -->
+                    <Border Background="#0F172A" CornerRadius="8" Padding="14" BorderBrush="#334155" BorderThickness="1">
+                        <StackPanel Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Text="Status &amp; Console" FontWeight="SemiBold" FontSize="13" Foreground="#E2E8F0"/>
+                                <TextBlock Grid.Column="1" Name="TxtStatusBadge" Text="Ready" Foreground="#10B981" FontWeight="SemiBold" FontSize="12"/>
+                            </Grid>
+                            <TextBox Name="TxtLogs" AcceptsReturn="True" IsReadOnly="True" Height="140"
+                                     FontFamily="Consolas, Menlo, Monaco, Courier New, monospace" FontSize="11"
+                                     Background="#020617" BorderBrush="#1E293B" Foreground="#94A3B8"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Window>

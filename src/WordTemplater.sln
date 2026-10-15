@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WordTemplater.Example", "Wo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WordTemplater.Tests", "..\tests\WordTemplater.Tests\WordTemplater.Tests.csproj", "{3B1AA268-EB33-4C3B-BCBA-084FD37B0F0E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WordTemplater.Desktop", "..\examples\WordTemplater.Desktop\WordTemplater.Desktop.csproj", "{2DEC8931-8233-4388-8EFC-5E6ED018F37F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{3B1AA268-EB33-4C3B-BCBA-084FD37B0F0E}.Release|x64.Build.0 = Release|Any CPU
 		{3B1AA268-EB33-4C3B-BCBA-084FD37B0F0E}.Release|x86.ActiveCfg = Release|Any CPU
 		{3B1AA268-EB33-4C3B-BCBA-084FD37B0F0E}.Release|x86.Build.0 = Release|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Debug|x64.Build.0 = Debug|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Debug|x86.Build.0 = Debug|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Release|x64.ActiveCfg = Release|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Release|x64.Build.0 = Release|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Release|x86.ActiveCfg = Release|Any CPU
+		{2DEC8931-8233-4388-8EFC-5E6ED018F37F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -361,12 +361,18 @@ using var resultStream = wordTemplate.Export(data, options);
 dotnet test src/WordTemplater.sln
 ```
 
-### Run Sample Application
+### Run Sample Application (CLI)
 ```bash
 dotnet run --project src/WordTemplater.Example/WordTemplater.Example.csproj
 ```
 
 The sample project reads sample JSON data from `DataSamples/Data.json`, processes `Templates/Template.docx`, and outputs `Output.docx`.
+
+### Run Desktop GUI Studio (macOS, Linux, Windows)
+```bash
+dotnet run --project examples/WordTemplater.Desktop/WordTemplater.Desktop.csproj
+```
+Interactive desktop GUI tool powered by [Avalonia UI](https://avaloniaui.net/) for testing custom JSON payloads, picking built-in or custom Word templates, configuring watermarks and zebra-striping, and immediately opening the exported `.docx` document.
 
 ---
 

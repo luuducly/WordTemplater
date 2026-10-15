@@ -428,6 +428,88 @@ public partial class MainWindow : Window
         return cell;
     }
 
+    private static string? FindTemplateFile(string filename)
+    {
+        // 1. Direct path in development templates folder (relative to app build directory)
+        string devPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../Templates", filename));
+        if (File.Exists(devPath)) return devPath;
+
+        // 2. Relative to working directory
+        string cwdPath = Path.Combine(Directory.GetCurrentDirectory(), "Templates", filename);
+        if (File.Exists(cwdPath)) return cwdPath;
+
+        // 3. Bin output directory
+        string binPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", filename);
+        if (File.Exists(binPath)) return binPath;
+
+        // 4. Absolute workspace path fallback
+        string wsPath = Path.Combine("/Users/lyld/.gemini/antigravity-ide/scratch/WordTemplater/examples/WordTemplater.Desktop/Templates", filename);
+        if (File.Exists(wsPath)) return wsPath;
+
+        return null;
+    }
+
+    private string? GetActiveTemplatePath()
+    {
+        string tag = (ComboTemplates.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "showcase";
+        if (tag == "custom")
+        {
+            return TxtCustomTemplatePath.Text?.Trim();
+        }
+        if (tag == "preprinted")
+        {
+            return FindTemplateFile("PreprintedBillTemplate.docx");
+        }
+        if (tag == "invoice")
+        {
+            return FindTemplateFile("InvoiceTemplate.docx");
+        }
+        if (tag == "employee")
+        {
+            return FindTemplateFile("EmployeeTemplate.docx");
+        }
+        return null;
+    }
+
+    private async void OnOpenTemplateInWordClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            string? path = GetActiveTemplatePath();
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+                string templateDir = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../Templates"));
+                if (!Directory.Exists(templateDir))
+                {
+                    templateDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates");
+                    Directory.CreateDirectory(templateDir);
+                }
+
+                string tag = (ComboTemplates.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "showcase";
+                string filename = tag switch
+                {
+                    "preprinted" => "PreprintedBillTemplate.docx",
+                    "invoice" => "InvoiceTemplate.docx",
+                    "employee" => "EmployeeTemplate.docx",
+                    _ => $"{tag}_template.docx"
+                };
+
+                path = Path.Combine(templateDir, filename);
+                byte[] bytes = GetTemplateBytes();
+                await File.WriteAllBytesAsync(path, bytes);
+            }
+
+            OpenWithDefaultApplication(path);
+            AppendLog($"[Template] Đã mở file template trong Microsoft Word: {path}");
+            TxtStatusBadge.Text = $"Opened {Path.GetFileName(path)}";
+        }
+        catch (Exception ex)
+        {
+            AppendLog($"[Error] Không thể mở file template: {ex.Message}");
+            TxtStatusBadge.Text = "Error";
+        }
+    }
+
     private byte[] GetTemplateBytes()
     {
         string tag = (ComboTemplates.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "showcase";
@@ -449,6 +531,12 @@ public partial class MainWindow : Window
 
         if (tag == "preprinted")
         {
+            string? diskPath = FindTemplateFile("PreprintedBillTemplate.docx");
+            if (!string.IsNullOrEmpty(diskPath) && File.Exists(diskPath))
+            {
+                AppendLog($"[Template] Đang tải PreprintedBillTemplate trực tiếp từ file ổ đĩa: {diskPath}");
+                return File.ReadAllBytes(diskPath);
+            }
             return BuildPreprintedBillTemplate();
         }
 

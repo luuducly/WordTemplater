@@ -50,8 +50,16 @@
                             <Button Grid.Column="1" Content="Browse..." Click="OnBrowseCustomTemplateClick"/>
                         </Grid>
 
-                        <TextBlock Name="TxtTemplateInfo" Text="Contains: «table(Items)», «_index», «upper(Description)», «currency(Price)», «date(Date)»" 
-                                   FontSize="11" Foreground="#64748B" TextWrapping="Wrap"/>
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                            <TextBlock Name="TxtTemplateInfo" Grid.Column="0" 
+                                       Text="Contains: «table(Items)», «_index», «upper(Description)», «currency(Price)», «date(Date)»" 
+                                       FontSize="11" Foreground="#64748B" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            <Button Name="BtnOpenTemplateInWord" Grid.Column="1" 
+                                    Content="✏️ Mở File Template trong Word (.docx)" 
+                                    Click="OnOpenTemplateInWordClick" 
+                                    Background="#1E293B" Foreground="#38BDF8" BorderBrush="#0284C7" BorderThickness="1"
+                                    FontSize="11" Padding="10,5" Margin="8,0,0,0"/>
+                        </Grid>
                     </StackPanel>
                 </Border>
 

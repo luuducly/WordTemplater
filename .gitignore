@@ -11,6 +11,7 @@ _ReSharper.*
 *.resharper.user 
 .vs/
 *.docx
+!examples/WordTemplater.Desktop/Templates/*.docx
 *.nupkg
 .DS_Store
 *.received.txt

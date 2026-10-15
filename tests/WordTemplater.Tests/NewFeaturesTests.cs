@@ -417,6 +417,12 @@ namespace WordTemplater.Tests
         public void Export_DesktopPreprintedBillTemplate_FillsExactOverlayTextShapes()
         {
             byte[] tplBytes = TestTemplates.BuildPreprintedBillTemplate();
+            string templateDir = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../../../examples/WordTemplater.Desktop/Templates"));
+            if (Directory.Exists(templateDir))
+            {
+                string targetPath = Path.Combine(templateDir, "PreprintedBillTemplate.docx");
+                File.WriteAllBytes(targetPath, tplBytes);
+            }
             using var tplStream = new MemoryStream(tplBytes);
             using var template = new WordTemplate(tplStream);
 

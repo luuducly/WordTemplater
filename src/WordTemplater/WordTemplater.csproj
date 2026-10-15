@@ -4,10 +4,8 @@
     <OutputType>Library</OutputType>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
-	<Version>2.1.6</Version>
-	<PackageVersion>2.1.6</PackageVersion>
-	<AssemblyVersion>2.1.6.0</AssemblyVersion>
-	<FileVersion>2.1.6.0</FileVersion>
+	<!-- PackageVersion, AssemblyVersion and FileVersion derive from Version, so the release workflow's -p:Version=<tag> sets them all -->
+	<Version>2.1.7</Version>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
 	<RepositoryUrl>https://github.com/luuducly/WordTemplater</RepositoryUrl>

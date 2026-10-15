@@ -1,0 +1,18 @@
+=== /word/document.xml ===
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">Report</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">end</w:t>
+      </w:r>
+    </w:p>
+  </w:body>
+</w:document>
+=== relationships ===
+=== parts ===
+/word/document.xml application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml

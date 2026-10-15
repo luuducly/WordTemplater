@@ -1,0 +1,50 @@
+=== /word/document.xml ===
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">Report</w:t>
+      </w:r>
+    </w:p>
+    <w:tbl>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">No</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">Name</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">Qty</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">Price</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">end</w:t>
+      </w:r>
+    </w:p>
+  </w:body>
+</w:document>
+=== relationships ===
+=== parts ===
+/word/document.xml application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml

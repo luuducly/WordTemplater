@@ -1,0 +1,401 @@
+=== /word/document.xml ===
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">Report</w:t>
+      </w:r>
+    </w:p>
+    <w:tbl>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">No</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">Name</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">Qty</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">Price</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">1</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 0</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p />
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$0.00</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:drawing>
+              <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:editId="EDITID1" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+                <wp:extent cx="4877481" cy="4877481" />
+                <wp:effectExtent l="0" t="0" r="0" b="0" />
+                <wp:docPr id="DOCPR_ID1" name="DOCPR_NAME1" />
+                <a:cNvGraphicFramePr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                  <a:graphicFrameLocks noChangeAspect="1" />
+                </a:cNvGraphicFramePr>
+                <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                  <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                    <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                      <pic:nvPicPr>
+                        <pic:cNvPr id="DOCPR_ID2" name="DOCPR_NAME2" />
+                        <pic:cNvPicPr />
+                      </pic:nvPicPr>
+                      <pic:blipFill rotWithShape="1">
+                        <a:blip r:embed="REL1" cstate="print" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+                          <a:extLst />
+                        </a:blip>
+                        <a:stretch />
+                      </pic:blipFill>
+                      <pic:spPr>
+                        <a:xfrm>
+                          <a:off x="0" y="0" />
+                          <a:ext cx="4877481" cy="4877481" />
+                        </a:xfrm>
+                        <a:prstGeom prst="rect">
+                          <a:avLst />
+                        </a:prstGeom>
+                      </pic:spPr>
+                    </pic:pic>
+                  </a:graphicData>
+                </a:graphic>
+              </wp:inline>
+            </w:drawing>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">2</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 1</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">1</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$1.50</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:drawing>
+              <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:editId="EDITID2" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+                <wp:extent cx="4877481" cy="4877481" />
+                <wp:effectExtent l="0" t="0" r="0" b="0" />
+                <wp:docPr id="DOCPR_ID3" name="DOCPR_NAME3" />
+                <a:cNvGraphicFramePr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                  <a:graphicFrameLocks noChangeAspect="1" />
+                </a:cNvGraphicFramePr>
+                <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                  <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                    <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                      <pic:nvPicPr>
+                        <pic:cNvPr id="DOCPR_ID4" name="DOCPR_NAME4" />
+                        <pic:cNvPicPr />
+                      </pic:nvPicPr>
+                      <pic:blipFill rotWithShape="1">
+                        <a:blip r:embed="REL2" cstate="print" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+                          <a:extLst />
+                        </a:blip>
+                        <a:stretch />
+                      </pic:blipFill>
+                      <pic:spPr>
+                        <a:xfrm>
+                          <a:off x="0" y="0" />
+                          <a:ext cx="4877481" cy="4877481" />
+                        </a:xfrm>
+                        <a:prstGeom prst="rect">
+                          <a:avLst />
+                        </a:prstGeom>
+                      </pic:spPr>
+                    </pic:pic>
+                  </a:graphicData>
+                </a:graphic>
+              </wp:inline>
+            </w:drawing>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">3</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 2</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">2</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$3.00</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:drawing>
+              <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:editId="EDITID3" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+                <wp:extent cx="4877481" cy="4877481" />
+                <wp:effectExtent l="0" t="0" r="0" b="0" />
+                <wp:docPr id="DOCPR_ID5" name="DOCPR_NAME5" />
+                <a:cNvGraphicFramePr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                  <a:graphicFrameLocks noChangeAspect="1" />
+                </a:cNvGraphicFramePr>
+                <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                  <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                    <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                      <pic:nvPicPr>
+                        <pic:cNvPr id="DOCPR_ID6" name="DOCPR_NAME6" />
+                        <pic:cNvPicPr />
+                      </pic:nvPicPr>
+                      <pic:blipFill rotWithShape="1">
+                        <a:blip r:embed="REL3" cstate="print" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+                          <a:extLst />
+                        </a:blip>
+                        <a:stretch />
+                      </pic:blipFill>
+                      <pic:spPr>
+                        <a:xfrm>
+                          <a:off x="0" y="0" />
+                          <a:ext cx="4877481" cy="4877481" />
+                        </a:xfrm>
+                        <a:prstGeom prst="rect">
+                          <a:avLst />
+                        </a:prstGeom>
+                      </pic:spPr>
+                    </pic:pic>
+                  </a:graphicData>
+                </a:graphic>
+              </wp:inline>
+            </w:drawing>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">4</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 3</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">3</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$4.50</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:drawing>
+              <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:editId="EDITID4" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+                <wp:extent cx="4877481" cy="4877481" />
+                <wp:effectExtent l="0" t="0" r="0" b="0" />
+                <wp:docPr id="DOCPR_ID7" name="DOCPR_NAME7" />
+                <a:cNvGraphicFramePr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                  <a:graphicFrameLocks noChangeAspect="1" />
+                </a:cNvGraphicFramePr>
+                <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                  <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                    <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                      <pic:nvPicPr>
+                        <pic:cNvPr id="DOCPR_ID8" name="DOCPR_NAME8" />
+                        <pic:cNvPicPr />
+                      </pic:nvPicPr>
+                      <pic:blipFill rotWithShape="1">
+                        <a:blip r:embed="REL4" cstate="print" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+                          <a:extLst />
+                        </a:blip>
+                        <a:stretch />
+                      </pic:blipFill>
+                      <pic:spPr>
+                        <a:xfrm>
+                          <a:off x="0" y="0" />
+                          <a:ext cx="4877481" cy="4877481" />
+                        </a:xfrm>
+                        <a:prstGeom prst="rect">
+                          <a:avLst />
+                        </a:prstGeom>
+                      </pic:spPr>
+                    </pic:pic>
+                  </a:graphicData>
+                </a:graphic>
+              </wp:inline>
+            </w:drawing>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">5</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 4</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">4</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$6.00</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:drawing>
+              <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:editId="EDITID5" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+                <wp:extent cx="4877481" cy="4877481" />
+                <wp:effectExtent l="0" t="0" r="0" b="0" />
+                <wp:docPr id="DOCPR_ID9" name="DOCPR_NAME9" />
+                <a:cNvGraphicFramePr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                  <a:graphicFrameLocks noChangeAspect="1" />
+                </a:cNvGraphicFramePr>
+                <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                  <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                    <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                      <pic:nvPicPr>
+                        <pic:cNvPr id="DOCPR_ID10" name="DOCPR_NAME10" />
+                        <pic:cNvPicPr />
+                      </pic:nvPicPr>
+                      <pic:blipFill rotWithShape="1">
+                        <a:blip r:embed="REL5" cstate="print" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+                          <a:extLst />
+                        </a:blip>
+                        <a:stretch />
+                      </pic:blipFill>
+                      <pic:spPr>
+                        <a:xfrm>
+                          <a:off x="0" y="0" />
+                          <a:ext cx="4877481" cy="4877481" />
+                        </a:xfrm>
+                        <a:prstGeom prst="rect">
+                          <a:avLst />
+                        </a:prstGeom>
+                      </pic:spPr>
+                    </pic:pic>
+                  </a:graphicData>
+                </a:graphic>
+              </wp:inline>
+            </w:drawing>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">end</w:t>
+      </w:r>
+    </w:p>
+  </w:body>
+</w:document>
+=== relationships ===
+REL1 -> image/png c1eb074289a6c9f1
+REL2 -> image/png 28ca85fd69109352
+REL3 -> image/png beb5608bf27625c1
+REL4 -> image/png d47e640f0d864549
+REL5 -> image/png cd8b12ca52daab4a
+=== parts ===
+/media/image.png image/png c1eb074289a6c9f1
+/media/image2.png image/png 28ca85fd69109352
+/media/image3.png image/png beb5608bf27625c1
+/media/image4.png image/png d47e640f0d864549
+/media/image5.png image/png cd8b12ca52daab4a
+/word/document.xml application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml

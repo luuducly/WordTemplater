@@ -1,0 +1,182 @@
+=== /word/document.xml ===
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">Report</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">1</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 0</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">2</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 1</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">3</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 2</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">4</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 3</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">5</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 4</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">6</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 5</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">7</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 6</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">big qty: </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">6</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">8</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 7</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">big qty: </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">7</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">9</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 8</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">big qty: </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">8</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">10</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 9</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">big qty: </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">9</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">11</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 10</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">12</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 11</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">end</w:t>
+      </w:r>
+    </w:p>
+  </w:body>
+</w:document>
+=== relationships ===
+=== parts ===
+/word/document.xml application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml

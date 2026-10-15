@@ -66,7 +66,7 @@ Install-Package WordTemplater
 
 ### PackageReference
 ```xml
-<PackageReference Include="WordTemplater" Version="2.16.0" />
+<PackageReference Include="WordTemplater" Version="2.16" />
 ```
 
 ---

@@ -28,6 +28,19 @@ No Microsoft Office installation or COM Interop required. Runs seamlessly on Win
 
 ---
 
+## Installation
+
+```bash
+dotnet add package WordTemplater --version 2.16
+```
+
+### PackageReference
+```xml
+<PackageReference Include="WordTemplater" Version="2.16" />
+```
+
+---
+
 ## Quick Start
 
 ```csharp

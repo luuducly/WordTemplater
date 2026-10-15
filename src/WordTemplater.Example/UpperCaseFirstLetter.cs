@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -13,7 +13,7 @@ namespace WordTemplater.Example
         {
             if (fieldValue != null)
             {
-                var strValue = fieldValue.ToString();
+                var strValue = fieldValue.ToString() ?? string.Empty;
                 TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
                 return textInfo.ToTitleCase(strValue);
             }

@@ -1,4 +1,4 @@
-﻿using SkiaSharp;
+using SkiaSharp;
 
 namespace WordTemplater
 {
@@ -21,8 +21,10 @@ namespace WordTemplater
     public static readonly string MERGEFORMAT = "  \\* MERGEFORMAT";
     public static readonly string CURRENT_NODE = ".";
     public static readonly string CURRENT_INDEX = "_index";
+    public static readonly string IS_FIRST = "_first";
     public static readonly string IS_LAST = "_last";
-
+    public static readonly string IS_EVEN = "_even";
+    public static readonly string IS_ODD = "_odd";
   }
 
   internal static class FunctionName
@@ -44,6 +46,12 @@ namespace WordTemplater
     internal const string Mermaid = "mermaid";
     internal const string Html = "html";
     internal const string Word = "word";
+    internal const string Date = "date";
+    internal const string Number = "number";
+    internal const string DefaultValue = "default";
+    internal const string Coalesce = "coalesce";
+    internal const string PadLeft = "padleft";
+    internal const string PadRight = "padright";
     internal const string Loop = "loop";
     internal const string Table = "table";
     internal const string EndLoop = "endloop";

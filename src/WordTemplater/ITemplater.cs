@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -47,14 +47,21 @@ namespace WordTemplater
 
     void ITemplater.FillData(JToken? value, RenderContext context)
     {
-      if (value == null)
-      {
-        context.MergeField.StartField?.RemoveAll();
-        return;
-      }
-
       string eval = string.Empty;
       ITemplater templater = context.Templater;
+
+      if (value == null)
+      {
+        if (context.Templater?.Evaluator is DefaultValueEvaluator)
+        {
+          eval = EvaluateValue(null, templater, context);
+        }
+        else
+        {
+          context.MergeField.StartField?.RemoveAll();
+          return;
+        }
+      }
 
       try
       {
@@ -189,6 +196,36 @@ namespace WordTemplater
     internal IfTemplater() : base(new IfEvaluator()) { }
   }
 
+  [DebuggerDisplay("[Date Templater]")]
+  internal class DateTemplater : Templater, ITemplater
+  {
+    internal DateTemplater() : base(new DateEvaluator()) { }
+  }
+
+  [DebuggerDisplay("[Number Templater]")]
+  internal class NumberTemplater : Templater, ITemplater
+  {
+    internal NumberTemplater() : base(new NumberEvaluator()) { }
+  }
+
+  [DebuggerDisplay("[DefaultValue Templater]")]
+  internal class DefaultValueTemplater : Templater, ITemplater
+  {
+    internal DefaultValueTemplater() : base(new DefaultValueEvaluator()) { }
+  }
+
+  [DebuggerDisplay("[PadLeft Templater]")]
+  internal class PadLeftTemplater : Templater, ITemplater
+  {
+    internal PadLeftTemplater() : base(new PadLeftEvaluator()) { }
+  }
+
+  [DebuggerDisplay("[PadRight Templater]")]
+  internal class PadRightTemplater : Templater, ITemplater
+  {
+    internal PadRightTemplater() : base(new PadRightEvaluator()) { }
+  }
+
   [DebuggerDisplay("[Condition Templater]")]
   internal class ConditionTemplater : Templater, ITemplater
   {
@@ -254,7 +291,10 @@ namespace WordTemplater
           {
             var arrItemJob = arrItem as JObject;
             arrItemJob[Constant.CURRENT_INDEX] = context.Index + 1;
+            arrItemJob[Constant.IS_FIRST] = (context.Index == 0);
             arrItemJob[Constant.IS_LAST] = (context.Index == arr.Count - 1);
+            arrItemJob[Constant.IS_EVEN] = ((context.Index + 1) % 2 == 0);
+            arrItemJob[Constant.IS_ODD] = ((context.Index + 1) % 2 == 1);
             FillData(context.ChildNodes, arrItemJob);
           }
           else if (arrItem is JValue)
@@ -262,7 +302,10 @@ namespace WordTemplater
             var jval = new JObject();
             jval[Constant.CURRENT_NODE] = arrItem as JValue;
             jval[Constant.CURRENT_INDEX] = context.Index + 1;
+            jval[Constant.IS_FIRST] = (context.Index == 0);
             jval[Constant.IS_LAST] = (context.Index == arr.Count - 1);
+            jval[Constant.IS_EVEN] = ((context.Index + 1) % 2 == 0);
+            jval[Constant.IS_ODD] = ((context.Index + 1) % 2 == 1);
             FillData(context.ChildNodes, jval);
           }
           context.MergeField.StartField?.RemoveAll(true);
@@ -275,7 +318,7 @@ namespace WordTemplater
     {
       foreach (var context in renderContexts)
       {
-        var value = data.GetValue(context.FieldName, StringComparison.OrdinalIgnoreCase);
+        var value = Utils.ResolveToken(data, context.FieldName);
         context.CurrentItem = data;
         context.Templater?.FillData(value, context);
       }
@@ -285,7 +328,15 @@ namespace WordTemplater
   [DebuggerDisplay("[Table Templater]")]
   internal class TableTemplater : LoopTemplater, ITemplater
   {
+    internal string? OddRowColor { get; set; }
+    internal string? EvenRowColor { get; set; }
+
     internal TableTemplater() : base(new TableEvaluator()) { }
+    internal TableTemplater(string? oddColor, string? evenColor = null) : base(new TableEvaluator())
+    {
+      OddRowColor = oddColor;
+      EvenRowColor = evenColor;
+    }
   }
 
   [DebuggerDisplay("[Image Templater]")]
@@ -295,76 +346,157 @@ namespace WordTemplater
 
     internal ImageTemplater(IEvaluator evaluator) : base(evaluator) { }
 
+    private static MemoryStream? ResolveImageStream(object? jvalue, IEvaluator evaluator)
+    {
+      if (jvalue == null) return null;
+
+      if (jvalue is byte[] bytes)
+      {
+        return new MemoryStream(bytes);
+      }
+
+      if (jvalue is Stream st)
+      {
+        var ms = new MemoryStream();
+        st.CopyTo(ms);
+        ms.Position = 0;
+        return ms;
+      }
+
+      var str = jvalue.ToString()?.Trim();
+      if (string.IsNullOrEmpty(str)) return null;
+
+      if (evaluator is not ImageEvaluator || evaluator is BarCodeEvaluator || evaluator is QRCodeEvaluator || evaluator is MermaidEvaluator)
+      {
+        var evaluated = evaluator.Evaluate(str, new List<object>());
+        if (!string.IsNullOrEmpty(evaluated))
+        {
+          try
+          {
+            return new MemoryStream(Convert.FromBase64String(evaluated));
+          }
+          catch { }
+        }
+      }
+
+      if (File.Exists(str))
+      {
+        try
+        {
+          return new MemoryStream(File.ReadAllBytes(str));
+        }
+        catch { }
+      }
+
+      if (Uri.TryCreate(str, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+      {
+        try
+        {
+          using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+          var downloaded = client.GetByteArrayAsync(uri).GetAwaiter().GetResult();
+          return new MemoryStream(downloaded);
+        }
+        catch { }
+      }
+
+      try
+      {
+        return new MemoryStream(Convert.FromBase64String(str));
+      }
+      catch
+      {
+        return null;
+      }
+    }
+
     void ITemplater.FillData(JToken? value, RenderContext context)
     {
-      if (value is JValue)
+      object? jvalue = null;
+      if (value is JValue jv)
       {
-        var jvalue = ((JValue)value).Value;
-        if (jvalue != null)
-        {
-          List<object> parameters = Utils.PaserParametters(context.Parameters);
-          var base64Img = _evaluator.Evaluate(jvalue.ToString(), null);
-          var stream = new MemoryStream(Convert.FromBase64String(base64Img));
+        jvalue = jv.Value;
+      }
+      else if (value != null)
+      {
+        jvalue = value.ToObject<object>();
+      }
 
-          var drawing = context.MergeField.StartField.StartNode.Ancestors<WP.Drawing>().FirstOrDefault();
-          OpenXmlElement imageParentElement;
-          Size displaySize;
-          SourceRectangle sourceRectangle = null;
+      if (jvalue != null)
+      {
+        List<object> parameters = Utils.PaserParametters(context.Parameters);
+        using var stream = ResolveImageStream(jvalue, _evaluator);
+        if (stream != null)
+        {
+          var drawing = context.MergeField.StartField?.StartNode?.Ancestors<WP.Drawing>().FirstOrDefault();
+          OpenXmlElement? imageParentElement = null;
+          Size? displaySize = null;
+          SourceRectangle? sourceRectangle = null;
           ShapeTypeValues shapeType = ShapeTypeValues.Rectangle;
           if (drawing != null)
           {
             var run = drawing.Ancestors<WP.Run>().FirstOrDefault();
-            DRAW.GraphicData graphicData;
             displaySize = GetShapeSize(drawing.Descendants<DRAW.Extents>().FirstOrDefault());
             if (displaySize == null) displaySize = WordUtils.GetImageSize(stream);
-            if (displaySize == null)
-              goto DONE;
-            graphicData = drawing.Descendants<DRAW.GraphicData>().FirstOrDefault();
-            if (graphicData != null)
+            if (displaySize != null)
             {
-              var geometry = graphicData.Descendants<PresetGeometry>().FirstOrDefault();
-              if (geometry != null && geometry.Preset.HasValue)
+              var graphicData = drawing.Descendants<DRAW.GraphicData>().FirstOrDefault();
+              if (graphicData != null)
               {
-                shapeType = geometry.Preset.Value;
+                var geometry = graphicData.Descendants<PresetGeometry>().FirstOrDefault();
+                if (geometry != null && geometry.Preset.HasValue)
+                {
+                  shapeType = geometry.Preset.Value;
+                }
+                graphicData.RemoveAllChildren();
+                graphicData.Uri = Constant.PICTURE_NAMESPACE;
+                imageParentElement = graphicData;
               }
-              graphicData.RemoveAllChildren();
-              graphicData.Uri = Constant.PICTURE_NAMESPACE;
-              imageParentElement = graphicData;
-            }
-            else
-            {
-              if (run == null)
-                goto DONE;
-              imageParentElement = run;
-            }
-            Size originalSize = WordUtils.GetImageSize(stream);
-            double ratio = Math.Max((double)displaySize.Width / originalSize.Width, (double)displaySize.Height / originalSize.Height);
-            int percentVertical, percentHorizontal;
-            if (parameters.Count > 0 && parameters[0] is Boolean boolean && boolean)
-            {
-              if (ratio > 1)
-                ratio = 1;
-              Size newImageSize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
-              var extent = drawing.Descendants<DRAW.Wordprocessing.Extent>().FirstOrDefault();
-              extent.Cx = WordUtils.PixelToEmu(newImageSize.Width);
-              extent.Cy = WordUtils.PixelToEmu(newImageSize.Height);
-              displaySize = newImageSize;
-              percentVertical = percentHorizontal = 0;
-            }
-            else
-            {
-              Size newImageSize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
-              percentVertical = WordUtils.ToThousandPercent((double)(newImageSize.Height - displaySize.Height) / 2 / newImageSize.Height * 100);
-              percentHorizontal = WordUtils.ToThousandPercent((double)(newImageSize.Width - displaySize.Width) / 2 / newImageSize.Width * 100);
-            }
+              else
+              {
+                imageParentElement = run;
+              }
 
-            sourceRectangle = new SourceRectangle();
-            if (percentHorizontal > 0)
-              sourceRectangle.Left = sourceRectangle.Right = percentHorizontal;
-            if (percentVertical > 0)
-              sourceRectangle.Top = sourceRectangle.Bottom = percentVertical;
+              if (imageParentElement != null)
+              {
+                Size originalSize = WordUtils.GetImageSize(stream);
+                double ratio = Math.Max((double)displaySize.Width / originalSize.Width, (double)displaySize.Height / originalSize.Height);
+                int percentVertical, percentHorizontal;
+                if (parameters.Count > 0 && parameters[0] is Boolean boolean && boolean)
+                {
+                  if (ratio > 1)
+                    ratio = 1;
+                  Size newImageSize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
+                  var extent = drawing.Descendants<DRAW.Wordprocessing.Extent>().FirstOrDefault();
+                  if (extent != null)
+                  {
+                    extent.Cx = WordUtils.PixelToEmu(newImageSize.Width);
+                    extent.Cy = WordUtils.PixelToEmu(newImageSize.Height);
+                  }
+                  displaySize = newImageSize;
+                  percentVertical = percentHorizontal = 0;
+                }
+                else
+                {
+                  Size newImageSize = new Size((long)(originalSize.Width * ratio), (long)(originalSize.Height * ratio));
+                  percentVertical = WordUtils.ToThousandPercent((double)(newImageSize.Height - displaySize.Height) / 2 / newImageSize.Height * 100);
+                  percentHorizontal = WordUtils.ToThousandPercent((double)(newImageSize.Width - displaySize.Width) / 2 / newImageSize.Width * 100);
+                }
+
+                sourceRectangle = new SourceRectangle();
+                if (percentHorizontal > 0)
+                  sourceRectangle.Left = sourceRectangle.Right = percentHorizontal;
+                if (percentVertical > 0)
+                  sourceRectangle.Top = sourceRectangle.Bottom = percentVertical;
+
+                if (context.MergeField?.ParentPart != null)
+                {
+                  var imgElement = CreateNewPictureElement(stream, context.MergeField.ParentPart, displaySize, shapeType, sourceRectangle);
+                  imageParentElement.Append(imgElement);
+                }
+              }
+            }
           }
-          else
+          else if (context.MergeField?.StartField?.StartNode != null && context.MergeField.ParentPart != null)
           {
             Size originalSize = WordUtils.GetImageSize(stream);
             double? percent = GetPercent(context.Parameters);
@@ -382,13 +514,13 @@ namespace WordTemplater
             (OpenXmlElement drawingElement, OpenXmlElement graphicDataElement) = CreateNewGraphicElement(displaySize);
             imageParentElement = graphicDataElement;
             context.MergeField.StartField.RootNode.InsertBeforeSelf(drawingElement);
+            var imgElement = CreateNewPictureElement(stream, context.MergeField.ParentPart, displaySize, shapeType, sourceRectangle);
+            imageParentElement.Append(imgElement);
           }
-          var imgElement = CreateNewPictureElement(stream, context.MergeField.ParentPart, displaySize, shapeType, sourceRectangle);
-          imageParentElement.Append(imgElement);
         }
       }
-    DONE:
-      context.MergeField.StartField.RemoveAll();
+
+      context.MergeField?.StartField?.RemoveAll();
     }
 
     private ImagePart AddImagePart(TypedOpenXmlPart parentPart)
@@ -437,7 +569,7 @@ namespace WordTemplater
       return (element, graphicDataElement);
     }
 
-    private PIC.Picture CreateNewPictureElement(MemoryStream stream, TypedOpenXmlPart parentPart, Size size, ShapeTypeValues type, SourceRectangle sourceRect = null)
+    private PIC.Picture CreateNewPictureElement(Stream stream, TypedOpenXmlPart parentPart, Size size, ShapeTypeValues type, SourceRectangle? sourceRect = null)
     {
       var imagePart = AddImagePart(parentPart);
       var imageId = parentPart.GetIdOfPart(imagePart);
@@ -623,71 +755,75 @@ namespace WordTemplater
           {
             var jvalue = ((JValue)value).Value;
             var eval = _evaluator.Evaluate(jvalue, null);
-            Stream stream = new MemoryStream(Convert.FromBase64String(eval));
-            var wordDocument = WordprocessingDocument.Open(stream, false);
+            using Stream stream = new MemoryStream(Convert.FromBase64String(eval));
+            using var wordDocument = WordprocessingDocument.Open(stream, false);
             Dictionary<string, string> mappingRID = new Dictionary<string, string>();
-            foreach (var p in wordDocument.MainDocumentPart.Parts)
+            if (wordDocument.MainDocumentPart != null)
             {
-              //ignore header and footer data
-              if (p.OpenXmlPart is HeaderPart or FooterPart)
+              foreach (var p in wordDocument.MainDocumentPart.Parts)
               {
-                continue;
-              }
-
-              try
-              {
-                var rId = Utils.GetUniqueStringID();
-                context.MergeField.ParentPart.AddPart(p.OpenXmlPart, rId);
-                mappingRID.Add(p.RelationshipId, rId);
-              }
-              catch { }
-            }
-
-            foreach (var el in wordDocument.MainDocumentPart.Document.Body.Elements())
-            {
-              if (el is SectionProperties) continue;
-              var newEl = el.CloneNode(true);
-              var subEls = newEl.Descendants().Where(x => { return x.GetAttributes().Where(a => mappingRID.ContainsKey(a.Value)).FirstOrDefault().LocalName != null; });
-
-              foreach (var x in subEls)
-              {
-                var att = x.GetAttributes().Where(a => mappingRID.ContainsKey(a.Value)).FirstOrDefault();
-                var newAttr = new OpenXmlAttribute(att.Prefix, att.LocalName, att.NamespaceUri, mappingRID[att.Value]);
-                x.SetAttribute(newAttr);
-              }
-
-              if (startNodeToInsert is WP.Paragraph && newEl is WP.Paragraph)
-              {
-                var paraProp = startNodeToInsert.Elements<WP.ParagraphProperties>().FirstOrDefault();
-                var oldParaProp = newEl.Elements<WP.ParagraphProperties>().FirstOrDefault();
-                if (paraProp != null)
+                //ignore header and footer data
+                if (p.OpenXmlPart is HeaderPart or FooterPart)
                 {
-                  var newParaProp = new WP.ParagraphProperties();
-                  if (oldParaProp != null)
+                  continue;
+                }
+
+                try
+                {
+                  var rId = Utils.GetUniqueStringID();
+                  context.MergeField.ParentPart.AddPart(p.OpenXmlPart, rId);
+                  mappingRID.Add(p.RelationshipId, rId);
+                }
+                catch { }
+              }
+
+              if (wordDocument.MainDocumentPart.Document.Body != null)
+              {
+                foreach (var el in wordDocument.MainDocumentPart.Document.Body.Elements())
+                {
+                  if (el is SectionProperties) continue;
+                  var newEl = el.CloneNode(true);
+                  var subEls = newEl.Descendants().Where(x => { return x.GetAttributes().Where(a => mappingRID.ContainsKey(a.Value)).FirstOrDefault().LocalName != null; });
+
+                  foreach (var x in subEls)
                   {
-                    foreach (var item in oldParaProp.ChildElements)
+                    var att = x.GetAttributes().Where(a => mappingRID.ContainsKey(a.Value)).FirstOrDefault();
+                    var newAttr = new OpenXmlAttribute(att.Prefix, att.LocalName, att.NamespaceUri, mappingRID[att.Value]);
+                    x.SetAttribute(newAttr);
+                  }
+
+                  if (startNodeToInsert is WP.Paragraph && newEl is WP.Paragraph)
+                  {
+                    var paraProp = startNodeToInsert.Elements<WP.ParagraphProperties>().FirstOrDefault();
+                    var oldParaProp = newEl.Elements<WP.ParagraphProperties>().FirstOrDefault();
+                    if (paraProp != null)
                     {
-                      if (!(item is Indentation))
-                        newParaProp.Append(item.CloneNode(true));
+                      var newParaProp = new WP.ParagraphProperties();
+                      if (oldParaProp != null)
+                      {
+                        foreach (var item in oldParaProp.ChildElements)
+                        {
+                          if (!(item is Indentation))
+                            newParaProp.Append(item.CloneNode(true));
+                        }
+
+                        oldParaProp.Remove();
+                      }
+
+                      foreach (var item in paraProp.ChildElements)
+                      {
+                        if (!newParaProp.Elements().Any(x => x.GetType() == item.GetType()))
+                          newParaProp.Append(item.CloneNode(true));
+                      }
+
+                      newEl.InsertAt(newParaProp, 0);
                     }
-
-                    oldParaProp.Remove();
                   }
 
-                  foreach (var item in paraProp.ChildElements)
-                  {
-                    if (!newParaProp.Elements().Any(x => x.GetType() == item.GetType()))
-                      newParaProp.Append(item.CloneNode(true));
-                  }
-
-                  newEl.InsertAt(newParaProp, 0);
+                  startNodeToInsert.InsertBeforeSelf(newEl);
                 }
               }
-
-              startNodeToInsert.InsertBeforeSelf(newEl);
             }
-
-            wordDocument.Dispose();
           }
         }
       }

@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml;
 using Newtonsoft.Json.Linq;
 using SkiaSharp.QrCode;
 using BarcodeStandard;
@@ -49,6 +49,45 @@ namespace WordTemplater
       }
 
       return parameters;
+    }
+
+    internal static JToken? ResolveToken(JObject? data, string? path)
+    {
+      if (data == null || string.IsNullOrWhiteSpace(path)) return null;
+
+      // 1. Direct property match (fast path)
+      var direct = data.GetValue(path, StringComparison.OrdinalIgnoreCase);
+      if (direct != null) return direct;
+
+      // 2. SelectToken for dot notation / indexing (e.g. Customer.Name, Items[0])
+      try
+      {
+        var token = data.SelectToken(path);
+        if (token != null) return token;
+      }
+      catch { }
+
+      // 3. Case-insensitive path navigation
+      if (path.Contains('.'))
+      {
+        var parts = path.Split('.');
+        JToken current = data;
+        foreach (var part in parts)
+        {
+          if (current is JObject obj)
+          {
+            current = obj.GetValue(part, StringComparison.OrdinalIgnoreCase);
+            if (current == null) return null;
+          }
+          else
+          {
+            return null;
+          }
+        }
+        return current;
+      }
+
+      return null;
     }
 
     internal static object ConvertStringValue(string value)

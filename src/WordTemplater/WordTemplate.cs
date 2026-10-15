@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using DocumentFormat.OpenXml;
@@ -24,6 +24,7 @@ namespace WordTemplater
     private List<RenderContext> _renderContexts;
     private Stream _sourceStream;
     private Dictionary<string, ITemplater> _templaterFactory;
+    private ExportOptions _defaultOptions = new ExportOptions();
 
     /// <summary>
     /// To init word template to export.
@@ -58,6 +59,12 @@ namespace WordTemplater
       this.RegisterTemplater(FunctionName.Mermaid, new MermaidTemplater());
       this.RegisterTemplater(FunctionName.Html, new HtmlTemplater());
       this.RegisterTemplater(FunctionName.Word, new WordTemplater());
+      this.RegisterTemplater(FunctionName.Date, new DateTemplater());
+      this.RegisterTemplater(FunctionName.Number, new NumberTemplater());
+      this.RegisterTemplater(FunctionName.DefaultValue, new DefaultValueTemplater());
+      this.RegisterTemplater(FunctionName.Coalesce, new DefaultValueTemplater());
+      this.RegisterTemplater(FunctionName.PadLeft, new PadLeftTemplater());
+      this.RegisterTemplater(FunctionName.PadRight, new PadRightTemplater());
     }
 
     /// <summary>
@@ -91,6 +98,67 @@ namespace WordTemplater
     }
 
     /// <summary>
+    /// Configures a text watermark for the exported document.
+    /// </summary>
+    public void SetWatermark(string text, string color = "C0C0C0", double angle = -45, double fontSize = 72, string fontName = "Calibri")
+    {
+      _defaultOptions.WatermarkText = text;
+      _defaultOptions.WatermarkColor = color;
+      _defaultOptions.WatermarkAngle = angle;
+      _defaultOptions.WatermarkFontSize = fontSize;
+      _defaultOptions.WatermarkFontFamily = fontName;
+    }
+
+    /// <summary>
+    /// Enables automatic zebra striping for tables in the document.
+    /// </summary>
+    public void EnableTableZebraStriping(string oddColor = "F9FAFB", string? evenColor = null)
+    {
+      _defaultOptions.TableOddRowColor = oddColor;
+      _defaultOptions.TableEvenRowColor = evenColor;
+    }
+
+    /// <summary>
+    /// To fill data into template file, then export it using custom ExportOptions.
+    /// </summary>
+    public Stream? Export(object data, ExportOptions options)
+    {
+      if (data != null && options != null)
+      {
+        _renderContexts.Clear();
+        Stream? targetStream = Utils.CloneStream(_sourceStream);
+        if (targetStream != null)
+        {
+          using (WordprocessingDocument targetDocument = WordprocessingDocument.Open(targetStream, true))
+          {
+            if (options.RemoveFallback)
+              WordUtils.RemoveFallbackElements(targetDocument);
+            if (data is not JObject) data = JObject.FromObject(data);
+
+            if (!string.IsNullOrEmpty(options.WatermarkText))
+            {
+              WordUtils.AddTextWatermark(
+                  targetDocument,
+                  options.WatermarkText,
+                  options.WatermarkColor,
+                  options.WatermarkAngle,
+                  options.WatermarkFontSize,
+                  options.WatermarkFontFamily);
+            }
+
+            PrepareRenderContext(targetDocument);
+            RenderTemplate(_renderContexts.ToList(), data as JObject, options);
+            LoopTemplater.FillData(_renderContexts, data as JObject);
+          }
+        }
+        if (targetStream != null)
+          targetStream.Position = 0;
+        return targetStream;
+      }
+      return null;
+    }
+
+    /// <summary>
     /// To fill data into template file, then export it.
     /// </summary>
     /// <param name="data">
@@ -102,49 +170,47 @@ namespace WordTemplater
     /// <returns>
     /// Return the exported file stream.
     /// </returns>
-    public Stream Export(object data, bool removeFallBack = true)
+    public Stream? Export(object data, bool removeFallBack = true)
     {
-      if (data != null)
+      var options = new ExportOptions
       {
-        Stream targetStream = Utils.CloneStream(_sourceStream);
-        if (targetStream != null)
-        {
-          using (WordprocessingDocument targetDocument = WordprocessingDocument.Open(targetStream, true))
-          {
-            if (removeFallBack)
-              WordUtils.RemoveFallbackElements(targetDocument);
-            if (data is not JObject) data = JObject.FromObject(data);
-
-            PrepareRenderContext(targetDocument);
-            RenderTemplate(_renderContexts.ToList(), data as JObject);
-            LoopTemplater.FillData(_renderContexts, data as JObject);
-          }
-        }
-        targetStream.Position = 0;
-        return targetStream;
-      }
-      return null;
+        RemoveFallback = removeFallBack,
+        WatermarkText = _defaultOptions.WatermarkText,
+        WatermarkColor = _defaultOptions.WatermarkColor,
+        WatermarkAngle = _defaultOptions.WatermarkAngle,
+        WatermarkFontSize = _defaultOptions.WatermarkFontSize,
+        WatermarkFontFamily = _defaultOptions.WatermarkFontFamily,
+        TableOddRowColor = _defaultOptions.TableOddRowColor,
+        TableEvenRowColor = _defaultOptions.TableEvenRowColor
+      };
+      return Export(data, options);
     }
 
 
     private void PrepareRenderContext(WordprocessingDocument document)
     {
-      MainDocumentPart mainPart = document.MainDocumentPart;
+      _renderContexts.Clear();
+      MainDocumentPart? mainPart = document.MainDocumentPart;
+      if (mainPart == null) return;
       var documentPart = mainPart.Document;
+      if (documentPart == null) return;
 
       //find bookmark templates in header parts
       foreach (HeaderPart headerPart in mainPart.HeaderParts)
       {
-        _renderContexts.AddRange(PrepareRenderContext(headerPart.Header, headerPart));
+        if (headerPart.Header != null)
+          _renderContexts.AddRange(PrepareRenderContext(headerPart.Header, headerPart));
       }
 
       //find bookmark templates in body parts
-      _renderContexts.AddRange(PrepareRenderContext(documentPart.Body, mainPart));
+      if (documentPart.Body != null)
+        _renderContexts.AddRange(PrepareRenderContext(documentPart.Body, mainPart));
 
       //find bookmark templates in footer parts
       foreach (FooterPart footerPart in mainPart.FooterParts)
       {
-        _renderContexts.AddRange(PrepareRenderContext(footerPart.Footer, footerPart));
+        if (footerPart.Footer != null)
+          _renderContexts.AddRange(PrepareRenderContext(footerPart.Footer, footerPart));
       }
     }
 
@@ -333,8 +399,21 @@ namespace WordTemplater
             }
             else if (function == FunctionName.Table)
             {
-              context.FieldName = paramContent;
-              context.Templater = new TableTemplater();
+              var tableParams = Utils.PaserParametters(paramContent);
+              if (tableParams.Count > 1)
+              {
+                context.FieldName = tableParams[0]?.ToString()?.Trim() ?? string.Empty;
+                var tableTemplater = new TableTemplater();
+                tableTemplater.OddRowColor = tableParams[1]?.ToString()?.Trim();
+                if (tableParams.Count > 2)
+                  tableTemplater.EvenRowColor = tableParams[2]?.ToString()?.Trim();
+                context.Templater = tableTemplater;
+              }
+              else
+              {
+                context.FieldName = paramContent;
+                context.Templater = new TableTemplater();
+              }
             }
           }
         }
@@ -355,29 +434,29 @@ namespace WordTemplater
       }
     }
 
-    private void RenderTemplate(List<RenderContext> renderContexts, JObject dataObj)
+    private void RenderTemplate(List<RenderContext> renderContexts, JObject dataObj, ExportOptions? options = null)
     {
       if (dataObj != null)
       {
         foreach (var rc in renderContexts)
         {
-          var value = dataObj.GetValue(rc.FieldName, StringComparison.OrdinalIgnoreCase);
+          var value = Utils.ResolveToken(dataObj, rc.FieldName);
           if (rc.Templater != null && rc.MergeField.StartField != null && rc.MergeField.EndField != null)
           {
             if (rc.Templater.Evaluator is LoopEvaluator && value is JArray)
             {
-              RenderTemplate(rc, (JArray)value);
+              RenderTemplate(rc, (JArray)value, options);
             }
             else if (rc.Templater.Evaluator is ConditionEvaluator)
             {
-              RenderTemplate(rc.ChildNodes.ToList(), dataObj);
+              RenderTemplate(rc.ChildNodes.ToList(), dataObj, options);
             }
           }
         }
       }
     }
 
-    private void RenderTemplate(RenderContext rc, JArray arrData)
+    private void RenderTemplate(RenderContext rc, JArray arrData, ExportOptions? options = null)
     {
       var template = GetRepeatingTemplate(rc);
       if (arrData.Count == 0)
@@ -394,6 +473,30 @@ namespace WordTemplater
         for (int i = 1; i < arrData.Count; i++)
         {
           generatedNodes.AddRange(template.CloneAndAppendTemplate());
+        }
+
+        if (rc.Templater is TableTemplater tableTemplater)
+        {
+          var oddColor = tableTemplater.OddRowColor ?? options?.TableOddRowColor;
+          var evenColor = tableTemplater.EvenRowColor ?? options?.TableEvenRowColor;
+
+          if (!string.IsNullOrEmpty(oddColor) || !string.IsNullOrEmpty(evenColor))
+          {
+            for (int k = 0; k < generatedNodes.Count; k++)
+            {
+              if (generatedNodes[k] is WP.TableRow tr)
+              {
+                if (k % 2 == 1 && !string.IsNullOrEmpty(oddColor))
+                {
+                  WordUtils.SetRowShading(tr, oddColor);
+                }
+                else if (k % 2 == 0 && !string.IsNullOrEmpty(evenColor))
+                {
+                  WordUtils.SetRowShading(tr, evenColor);
+                }
+              }
+            }
+          }
         }
 
         List<RenderContext> allContexts = PrepareRenderContext(generatedNodes, rc.MergeField.ParentPart);
@@ -441,7 +544,7 @@ namespace WordTemplater
               }
               var value = arrData[j];
               if (ct.ChildNodes.Count > 0)
-                RenderTemplate(ct.ChildNodes.ToList(), value as JObject);
+                RenderTemplate(ct.ChildNodes.ToList(), value as JObject, options);
             }
 
             if (rc.Parent == null)
@@ -593,5 +696,51 @@ namespace WordTemplater
       if (_sourceStream != null)
         _sourceStream.Dispose();
     }
+  }
+
+  /// <summary>
+  /// Options for customizing document export.
+  /// </summary>
+  public class ExportOptions
+  {
+    /// <summary>
+    /// Remove fallback elements from template. Default is true.
+    /// </summary>
+    public bool RemoveFallback { get; set; } = true;
+
+    /// <summary>
+    /// Optional watermark text to apply across headers.
+    /// </summary>
+    public string? WatermarkText { get; set; }
+
+    /// <summary>
+    /// Hex color code for watermark text (without #). Default is C0C0C0.
+    /// </summary>
+    public string WatermarkColor { get; set; } = "C0C0C0";
+
+    /// <summary>
+    /// Watermark rotation angle in degrees. Default is -45.
+    /// </summary>
+    public double WatermarkAngle { get; set; } = -45;
+
+    /// <summary>
+    /// Watermark font size in points. Default is 72.
+    /// </summary>
+    public double WatermarkFontSize { get; set; } = 72;
+
+    /// <summary>
+    /// Watermark font family. Default is Calibri.
+    /// </summary>
+    public string WatermarkFontFamily { get; set; } = "Calibri";
+
+    /// <summary>
+    /// Hex color for alternating odd table rows (e.g. F9FAFB).
+    /// </summary>
+    public string? TableOddRowColor { get; set; }
+
+    /// <summary>
+    /// Hex color for alternating even table rows (e.g. FFFFFF).
+    /// </summary>
+    public string? TableEvenRowColor { get; set; }
   }
 }

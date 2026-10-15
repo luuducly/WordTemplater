@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using SkiaSharp;
@@ -230,6 +230,71 @@ namespace WordTemplater
     internal static int ToThousandPercent(double percent)
     {
       return (int)(percent * 1000);
+    }
+
+    internal static void AddTextWatermark(WordprocessingDocument document, string text, string color = "C0C0C0", double angle = -45, double fontSize = 72, string fontName = "Calibri")
+    {
+      if (string.IsNullOrWhiteSpace(text) || document.MainDocumentPart == null) return;
+      var mainPart = document.MainDocumentPart;
+
+      var headerParts = mainPart.HeaderParts.ToList();
+      if (headerParts.Count == 0)
+      {
+        var newHeaderPart = mainPart.AddNewPart<HeaderPart>();
+        newHeaderPart.Header = new Header();
+        headerParts.Add(newHeaderPart);
+
+        var body = mainPart.Document?.Body;
+        if (body != null)
+        {
+          var sectionProps = body.Elements<SectionProperties>().LastOrDefault();
+          if (sectionProps == null)
+          {
+            sectionProps = new SectionProperties();
+            body.Append(sectionProps);
+          }
+          var headerRef = new HeaderReference { Type = HeaderFooterValues.Default, Id = mainPart.GetIdOfPart(newHeaderPart) };
+          sectionProps.PrependChild(headerRef);
+        }
+      }
+
+      var cleanColor = color.TrimStart('#');
+      var rotation = (int)angle;
+      var escapedText = System.Security.SecurityElement.Escape(text);
+
+      foreach (var headerPart in headerParts)
+      {
+        if (headerPart.Header == null) headerPart.Header = new Header();
+
+        var watermarkP = new Paragraph();
+        watermarkP.InnerXml = $@"<w:pPr xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main""><w:pStyle w:val=""Header""/></w:pPr><w:r xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" xmlns:v=""urn:schemas-microsoft-com:vml""><w:rPr><w:noProof/></w:rPr><w:pict><v:shapetype id=""_x0000_t136"" coordsize=""21600,21600"" path=""m@7,l@8,m@5,21600l@6,21600e""><v:textpath on=""t"" fitshape=""t""/><v:path textpathok=""t""/></v:shapetype><v:shape id=""WordTemplaterWatermark"" type=""#_x0000_t136"" style=""position:absolute;left:0;text-align:left;margin-left:0;margin-top:0;width:412.5pt;height:247.5pt;rotation:{rotation};z-index:-251654144;mso-position-horizontal:center;mso-position-horizontal-relative:margin;mso-position-vertical:center;mso-position-vertical-relative:margin"" fillcolor=""#{cleanColor}"" stroked=""f""><v:fill opacity=""0.3""/><v:textpath style=""font-family:'{fontName}';font-size:{fontSize}pt"" string=""{escapedText}""/></v:shape></w:pict></w:r>";
+
+        headerPart.Header.PrependChild(watermarkP);
+      }
+    }
+
+    internal static void SetRowShading(TableRow row, string fillColorHex)
+    {
+      if (row == null || string.IsNullOrWhiteSpace(fillColorHex)) return;
+      var cleanFill = fillColorHex.TrimStart('#');
+      foreach (var cell in row.Elements<TableCell>())
+      {
+        var cellProps = cell.Elements<TableCellProperties>().FirstOrDefault();
+        if (cellProps == null)
+        {
+          cellProps = new TableCellProperties();
+          cell.PrependChild(cellProps);
+        }
+        var shd = cellProps.Elements<Shading>().FirstOrDefault();
+        if (shd == null)
+        {
+          shd = new Shading();
+          cellProps.AppendChild(shd);
+        }
+        shd.Val = ShadingPatternValues.Clear;
+        shd.Color = "auto";
+        shd.Fill = cleanFill;
+      }
     }
   }
 }

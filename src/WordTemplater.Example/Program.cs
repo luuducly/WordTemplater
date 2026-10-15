@@ -3,19 +3,34 @@ using Newtonsoft.Json.Linq;
 using WordTemplater;
 using WordTemplater.Example;
 
-var json = File.ReadAllText("DataSamples\\Data.json");
+var baseDir = AppContext.BaseDirectory;
+string ResolvePath(string relativePath)
+{
+    if (File.Exists(relativePath)) return relativePath;
+    var fromBase = Path.Combine(baseDir, relativePath);
+    if (File.Exists(fromBase)) return fromBase;
+    return relativePath;
+}
+
+var jsonPath = ResolvePath(Path.Combine("DataSamples", "Data.json"));
+var json = File.ReadAllText(jsonPath);
 var data = JObject.Parse(json);
-var equationFile = File.ReadAllBytes("Templates\\Equation.docx");
+
+var equationPath = ResolvePath(Path.Combine("Templates", "Equation.docx"));
+var equationFile = File.ReadAllBytes(equationPath);
 data["Word"] = Convert.ToBase64String(equationFile);
 
-var avatarFile = File.ReadAllBytes("Templates\\Author.jpg");
+var avatarPath = ResolvePath(Path.Combine("Templates", "Author.jpg"));
+var avatarFile = File.ReadAllBytes(avatarPath);
 data["Image"] = Convert.ToBase64String(avatarFile);
 
-var rectangleImg = File.ReadAllBytes("Templates\\Rectangle.png");
+var rectPath = ResolvePath(Path.Combine("Templates", "Rectangle.png"));
+var rectangleImg = File.ReadAllBytes(rectPath);
 data["RectImage"] = Convert.ToBase64String(rectangleImg);
 
 var exportedFileName = "Output.docx";
-using (var templateStream = File.OpenRead("Templates\\Template.docx"))
+var templatePath = ResolvePath(Path.Combine("Templates", "Template.docx"));
+using (var templateStream = File.OpenRead(templatePath))
 {
     using (var wordTemplate = new WordTemplate(templateStream))
     {
@@ -31,9 +46,21 @@ using (var templateStream = File.OpenRead("Templates\\Template.docx"))
     }
 }    
 
-var p = new Process();
-p.StartInfo = new ProcessStartInfo(exportedFileName)
+Console.WriteLine($"Exported successfully to {Path.GetFullPath(exportedFileName)}");
+
+if (OperatingSystem.IsWindows())
 {
-   UseShellExecute = true
-};
-p.Start();
+    Process.Start(new ProcessStartInfo(exportedFileName) { UseShellExecute = true });
+}
+else if (OperatingSystem.IsMacOS())
+{
+    Process.Start("open", exportedFileName);
+}
+else if (OperatingSystem.IsLinux())
+{
+    try
+    {
+        Process.Start("xdg-open", exportedFileName);
+    }
+    catch { }
+}

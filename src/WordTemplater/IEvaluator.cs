@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -31,15 +31,27 @@ namespace WordTemplater
   {
     public string Evaluate(object fieldValue, List<object> parameters)
     {
+      if (fieldValue == null) return string.Empty;
+
       if (parameters.Count > 0)
       {
         var format = parameters[0]?.ToString();
         if (!string.IsNullOrEmpty(format))
+        {
+          if (fieldValue is string strVal)
+          {
+            if (DateTime.TryParse(strVal, out var dt))
+              return string.Format("{0:" + format + "}", dt);
+            if (decimal.TryParse(strVal, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var num) ||
+                decimal.TryParse(strVal, out num))
+              return string.Format("{0:" + format + "}", num);
+          }
           return string.Format("{0:" + format + "}", fieldValue);
+        }
 
-        return fieldValue.ToString();
+        return fieldValue.ToString() ?? string.Empty;
       }
-      return string.Empty;
+      return fieldValue.ToString() ?? string.Empty;
     }
   }
 
@@ -47,56 +59,55 @@ namespace WordTemplater
   {
     public virtual string Evaluate(object fieldValue, List<object> parameters)
     {
+      if (fieldValue == null) return string.Empty;
+      var strValue = fieldValue.ToString() ?? string.Empty;
+
       if (parameters.Count >= 1)
       {
-
-        var strValue = fieldValue.ToString();
-        if (parameters.Count >= 1)
+        var startObj = parameters[0];
+        if (startObj != null)
         {
-          var startObj = parameters[0];
-          if (startObj != null)
+          try
           {
-            try
+            var startNumber = Convert.ToInt32(startObj);
+            if (startNumber < 0) startNumber = 0;
+            if (startNumber < strValue.Length)
             {
-              var startNumber = Convert.ToInt32(startObj);
-              if (startNumber < strValue.Length)
+              if (parameters.Count >= 2)
               {
-                if (parameters.Count >= 2)
+                var length = Convert.ToInt32(parameters[1]);
+                if (length > 0)
                 {
-                  var length = Convert.ToInt32(parameters[1]);
-                  if (length > 0)
-                  {
-                    string subStr;
-                    string posFix = "";
-                    if (startNumber + length < strValue.Length)
-                      subStr = strValue.Substring(startNumber, length);
-                    else
-                      subStr = strValue.Substring(startNumber);
-
-                    if (parameters.Count >= 3)
-                    {
-                      posFix = parameters[2]?.ToString();
-                    }
-                    return subStr + posFix;
-                  }
+                  string subStr;
+                  string posFix = "";
+                  if (startNumber + length < strValue.Length)
+                    subStr = strValue.Substring(startNumber, length);
                   else
+                    subStr = strValue.Substring(startNumber);
+
+                  if (parameters.Count >= 3)
                   {
-                    return string.Empty;
+                    posFix = parameters[2]?.ToString() ?? "";
                   }
+                  return subStr + posFix;
+                }
+                else
+                {
+                  return string.Empty;
                 }
               }
-              else
-              {
-                return string.Empty;
-              }
+              return strValue.Substring(startNumber);
             }
-            catch { }
+            else
+            {
+              return string.Empty;
+            }
           }
+          catch { }
         }
-
-        return strValue;
       }
-      return string.Empty;
+
+      return strValue;
     }
   }
 
@@ -104,8 +115,9 @@ namespace WordTemplater
   {
     public override string Evaluate(object fieldValue, List<object> parameters)
     {
-      parameters.Insert(0, 0);
-      return base.Evaluate(fieldValue, parameters);
+      var clonedParams = new List<object>(parameters);
+      clonedParams.Insert(0, 0);
+      return base.Evaluate(fieldValue, clonedParams);
     }
   }
 
@@ -113,13 +125,14 @@ namespace WordTemplater
   {
     public string Evaluate(object fieldValue, List<object> parameters)
     {
-      var str = fieldValue.ToString();
+      if (fieldValue == null) return string.Empty;
+      var str = fieldValue.ToString() ?? string.Empty;
       var strLength = str.Length;
-      if (parameters.Count > 0 && int.TryParse(parameters[0].ToString(), out var length))
+      if (parameters.Count > 0 && int.TryParse(parameters[0]?.ToString(), out var length))
       {
-        if (length > 0)
-          return str.Substring(strLength - length);
-        return string.Empty;
+        if (length <= 0) return string.Empty;
+        if (length >= strLength) return str;
+        return str.Substring(strLength - length);
       }
       return str;
     }
@@ -131,7 +144,7 @@ namespace WordTemplater
     {
       if (fieldValue != null)
       {
-        return fieldValue.ToString().Trim();
+        return fieldValue.ToString()?.Trim() ?? string.Empty;
       }
       return string.Empty;
     }
@@ -143,7 +156,7 @@ namespace WordTemplater
     {
       if (fieldValue != null)
       {
-        return fieldValue.ToString().ToUpper();
+        return fieldValue.ToString()?.ToUpper() ?? string.Empty;
       }
       return string.Empty;
     }
@@ -155,7 +168,7 @@ namespace WordTemplater
     {
       if (fieldValue != null)
       {
-        return fieldValue.ToString().ToLower();
+        return fieldValue.ToString()?.ToLower() ?? string.Empty;
       }
       return string.Empty;
     }
@@ -165,11 +178,47 @@ namespace WordTemplater
   {
     public string Evaluate(object fieldValue, List<object> parameters)
     {
-      if (fieldValue != null)
+      if (fieldValue == null) return string.Empty;
+
+      decimal number = 0;
+      bool parsed = false;
+      if (fieldValue is decimal d) { number = d; parsed = true; }
+      else if (fieldValue is double db) { number = (decimal)db; parsed = true; }
+      else if (fieldValue is float f) { number = (decimal)f; parsed = true; }
+      else if (fieldValue is int i) { number = i; parsed = true; }
+      else if (fieldValue is long l) { number = l; parsed = true; }
+      else
       {
-        return string.Format("{0:C}", fieldValue.ToString());
+        var str = fieldValue.ToString()?.Trim();
+        if (decimal.TryParse(str, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out number) ||
+            decimal.TryParse(str, out number))
+        {
+          parsed = true;
+        }
       }
-      return string.Empty;
+
+      if (!parsed) return fieldValue.ToString() ?? string.Empty;
+
+      var culture = System.Globalization.CultureInfo.CurrentCulture;
+      string customFormat = "{0:C}";
+
+      if (parameters != null && parameters.Count > 0)
+      {
+        var param0 = parameters[0]?.ToString()?.Trim();
+        if (!string.IsNullOrEmpty(param0))
+        {
+          try
+          {
+            culture = System.Globalization.CultureInfo.GetCultureInfo(param0);
+          }
+          catch
+          {
+            customFormat = "{0:" + param0 + "}";
+          }
+        }
+      }
+
+      return string.Format(culture, customFormat, number);
     }
   }
 
@@ -197,15 +246,15 @@ namespace WordTemplater
     {
       if (fieldValue != null)
       {
-        var strValue = fieldValue.ToString();
+        var strValue = fieldValue.ToString() ?? string.Empty;
         if (parameters.Count >= 2)
         {
           var p1 = parameters[0];
           var p2 = parameters[1];
-          if (p1 != null && p1 != null)
+          if (p1 != null)
           {
-            var strP1 = p1.ToString();
-            var strP2 = p2.ToString();
+            var strP1 = p1.ToString() ?? string.Empty;
+            var strP2 = p2?.ToString() ?? string.Empty;
             try
             {
               return Regex.Replace(strValue, strP1, strP2);
@@ -216,6 +265,148 @@ namespace WordTemplater
         return strValue;
       }
       return string.Empty;
+    }
+  }
+
+  internal class DateEvaluator : IEvaluator
+  {
+    public string Evaluate(object fieldValue, List<object> parameters)
+    {
+      if (fieldValue == null) return string.Empty;
+
+      DateTime dt;
+      if (fieldValue is DateTime d)
+      {
+        dt = d;
+      }
+      else if (fieldValue is DateTimeOffset dto)
+      {
+        dt = dto.DateTime;
+      }
+      else
+      {
+        var str = fieldValue.ToString()?.Trim();
+        if (string.IsNullOrEmpty(str)) return string.Empty;
+        if (!DateTime.TryParse(str, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out dt) &&
+            !DateTime.TryParse(str, out dt))
+        {
+          return str;
+        }
+      }
+
+      var format = parameters.Count > 0 ? parameters[0]?.ToString() : "dd/MM/yyyy";
+      if (string.IsNullOrEmpty(format)) format = "dd/MM/yyyy";
+
+      var culture = System.Globalization.CultureInfo.CurrentCulture;
+      if (parameters.Count > 1)
+      {
+        var cultureStr = parameters[1]?.ToString()?.Trim();
+        if (!string.IsNullOrEmpty(cultureStr))
+        {
+          try { culture = System.Globalization.CultureInfo.GetCultureInfo(cultureStr); } catch { }
+        }
+      }
+
+      return dt.ToString(format, culture);
+    }
+  }
+
+  internal class NumberEvaluator : IEvaluator
+  {
+    public string Evaluate(object fieldValue, List<object> parameters)
+    {
+      if (fieldValue == null) return string.Empty;
+
+      decimal num = 0;
+      bool parsed = false;
+      if (fieldValue is decimal d) { num = d; parsed = true; }
+      else if (fieldValue is double db) { num = (decimal)db; parsed = true; }
+      else if (fieldValue is float f) { num = (decimal)f; parsed = true; }
+      else if (fieldValue is int i) { num = i; parsed = true; }
+      else if (fieldValue is long l) { num = l; parsed = true; }
+      else
+      {
+        var str = fieldValue.ToString()?.Trim();
+        if (decimal.TryParse(str, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out num) ||
+            decimal.TryParse(str, out num))
+        {
+          parsed = true;
+        }
+      }
+
+      if (!parsed) return fieldValue.ToString() ?? string.Empty;
+
+      var format = parameters.Count > 0 ? parameters[0]?.ToString() : "#,##0";
+      if (string.IsNullOrEmpty(format)) format = "#,##0";
+
+      var culture = System.Globalization.CultureInfo.CurrentCulture;
+      if (parameters.Count > 1)
+      {
+        var cultureStr = parameters[1]?.ToString()?.Trim();
+        if (!string.IsNullOrEmpty(cultureStr))
+        {
+          try { culture = System.Globalization.CultureInfo.GetCultureInfo(cultureStr); } catch { }
+        }
+      }
+
+      return num.ToString(format, culture);
+    }
+  }
+
+  internal class DefaultValueEvaluator : IEvaluator
+  {
+    public string Evaluate(object fieldValue, List<object> parameters)
+    {
+      if (fieldValue == null)
+      {
+        return parameters.Count > 0 ? (parameters[0]?.ToString() ?? string.Empty) : string.Empty;
+      }
+
+      var str = fieldValue.ToString();
+      if (string.IsNullOrEmpty(str))
+      {
+        return parameters.Count > 0 ? (parameters[0]?.ToString() ?? string.Empty) : string.Empty;
+      }
+
+      return str;
+    }
+  }
+
+  internal class PadLeftEvaluator : IEvaluator
+  {
+    public string Evaluate(object fieldValue, List<object> parameters)
+    {
+      var str = fieldValue?.ToString() ?? string.Empty;
+      if (parameters.Count > 0 && int.TryParse(parameters[0]?.ToString(), out int totalWidth))
+      {
+        char padChar = ' ';
+        if (parameters.Count > 1)
+        {
+          var p1 = parameters[1]?.ToString();
+          if (!string.IsNullOrEmpty(p1)) padChar = p1[0];
+        }
+        return str.PadLeft(totalWidth, padChar);
+      }
+      return str;
+    }
+  }
+
+  internal class PadRightEvaluator : IEvaluator
+  {
+    public string Evaluate(object fieldValue, List<object> parameters)
+    {
+      var str = fieldValue?.ToString() ?? string.Empty;
+      if (parameters.Count > 0 && int.TryParse(parameters[0]?.ToString(), out int totalWidth))
+      {
+        char padChar = ' ';
+        if (parameters.Count > 1)
+        {
+          var p1 = parameters[1]?.ToString();
+          if (!string.IsNullOrEmpty(p1)) padChar = p1[0];
+        }
+        return str.PadRight(totalWidth, padChar);
+      }
+      return str;
     }
   }
 
@@ -351,27 +542,35 @@ namespace WordTemplater
 
   internal class MermaidEvaluator : ImageEvaluator
   {
+    private static readonly HttpClient _httpClient = new HttpClient
+    {
+      Timeout = TimeSpan.FromSeconds(15)
+    };
+
     public override string Evaluate(object fieldValue, List<object> parameters)
     {
       if (fieldValue != null)
       {
-        using var httpClient = new HttpClient();
+        try
+        {
+          var url = "https://kroki.io/mermaid/png";
+          using var content = new StringContent(
+              fieldValue.ToString() ?? string.Empty,
+              Encoding.UTF8,
+              "text/plain"
+          );
 
-        var url = "https://kroki.io/mermaid/png";
-
-        using var content = new StringContent(
-            fieldValue.ToString(),
-            Encoding.UTF8,
-            "text/plain"
-        );
-
-        HttpResponseMessage response = httpClient.PostAsync(url, content).Result;
-
-        response.EnsureSuccessStatusCode();
-
-        // Kroki trả về ảnh PNG → đọc dưới dạng byte[]
-        byte[] imageBytes = response.Content.ReadAsByteArrayAsync().Result;
-        return Convert.ToBase64String(imageBytes);
+          var response = _httpClient.PostAsync(url, content).GetAwaiter().GetResult();
+          if (response.IsSuccessStatusCode)
+          {
+            byte[] imageBytes = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+            return Convert.ToBase64String(imageBytes);
+          }
+        }
+        catch
+        {
+          // Return empty string on network timeout/failure instead of crashing export
+        }
       }
       return string.Empty;
     }

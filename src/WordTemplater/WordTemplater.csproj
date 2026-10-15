@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
 	<Version>2.0.2</Version>
 	<VersionPrefix>1.0.1</VersionPrefix>
@@ -11,7 +11,7 @@
 	<RepositoryUrl>https://github.com/luuducly/WordTemplater</RepositoryUrl>
 	<FileVersion>1.0.0.0</FileVersion>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Title>WordTemplater</Title>
+    <Title>WordTemplater</Title>
 	<Authors>luuducly</Authors>
 	<Company />
 	<Description>- Format data with many build-in function (upper, lower, if, format:#,##0.00, MM/dd/yyyy...)
@@ -30,6 +30,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="WordTemplater.Tests" />
     <PackageReference Include="BarcodeLib" Version="3.0.3" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

@@ -10,6 +10,7 @@ _ReSharper.*
 *.ReSharper.user
 *.resharper.user 
 .vs/
+~$*
 *.docx
 !examples/WordTemplater.Desktop/Templates/*.docx
 *.nupkg

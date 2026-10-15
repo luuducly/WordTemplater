@@ -223,5 +223,104 @@ namespace WordTemplater.Tests
             Assert.Contains("15/10/2026", text);
             Assert.Contains("$1,500.50", text);
         }
+
+        [Fact]
+        public void Export_PreprintedBillWithTextShapes_HeaderBodyFooter_FillsExactPositions()
+        {
+            using var ms = new MemoryStream();
+            using (var doc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Create(ms, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
+            {
+                var main = doc.AddMainDocumentPart();
+                main.Document = new DocumentFormat.OpenXml.Wordprocessing.Document();
+
+                // 1. Header with Text Shape
+                var headerPart = main.AddNewPart<DocumentFormat.OpenXml.Packaging.HeaderPart>();
+                var headerShape = new DocumentFormat.OpenXml.Vml.Shape
+                {
+                    Id = "H_Shape",
+                    Style = "position:absolute;margin-left:350pt;margin-top:20pt;width:150pt;height:20pt",
+                    Filled = false,
+                    Stroked = false
+                };
+                var hTxbx = new DocumentFormat.OpenXml.Vml.TextBox();
+                var hTxbxContent = new DocumentFormat.OpenXml.Wordprocessing.TextBoxContent(TestTemplates.P(TestTemplates.F("InvoiceSerial")));
+                hTxbx.Append(hTxbxContent);
+                headerShape.Append(hTxbx);
+                headerPart.Header = new DocumentFormat.OpenXml.Wordprocessing.Header(
+                    TestTemplates.P(TestTemplates.T("Ký hiệu hóa đơn: .................")),
+                    TestTemplates.P(new DocumentFormat.OpenXml.Wordprocessing.Run(new DocumentFormat.OpenXml.Wordprocessing.Picture(headerShape)))
+                );
+
+                // 2. Footer with Text Shape
+                var footerPart = main.AddNewPart<DocumentFormat.OpenXml.Packaging.FooterPart>();
+                var footerShape = new DocumentFormat.OpenXml.Vml.Shape
+                {
+                    Id = "F_Shape",
+                    Style = "position:absolute;margin-left:300pt;margin-top:10pt;width:180pt;height:20pt",
+                    Filled = false,
+                    Stroked = false
+                };
+                var fTxbx = new DocumentFormat.OpenXml.Vml.TextBox();
+                var fTxbxContent = new DocumentFormat.OpenXml.Wordprocessing.TextBoxContent(TestTemplates.P(TestTemplates.F("SignerName:upper()")));
+                fTxbx.Append(fTxbxContent);
+                footerShape.Append(fTxbx);
+                footerPart.Footer = new DocumentFormat.OpenXml.Wordprocessing.Footer(
+                    TestTemplates.P(TestTemplates.T("Người ký duyệt: .................")),
+                    TestTemplates.P(new DocumentFormat.OpenXml.Wordprocessing.Run(new DocumentFormat.OpenXml.Wordprocessing.Picture(footerShape)))
+                );
+
+                // 3. Body with Background dots and Overlay Text Shape
+                var bodyShape = new DocumentFormat.OpenXml.Vml.Shape
+                {
+                    Id = "B_Shape",
+                    Style = "position:absolute;margin-left:140pt;margin-top:15pt;width:260pt;height:20pt",
+                    Filled = false,
+                    Stroked = false
+                };
+                var bTxbx = new DocumentFormat.OpenXml.Vml.TextBox();
+                var bTxbxContent = new DocumentFormat.OpenXml.Wordprocessing.TextBoxContent(TestTemplates.P(TestTemplates.F("CustomerName")));
+                bTxbx.Append(bTxbxContent);
+                bodyShape.Append(bTxbx);
+
+                var sectionProps = new DocumentFormat.OpenXml.Wordprocessing.SectionProperties(
+                    new DocumentFormat.OpenXml.Wordprocessing.HeaderReference { Type = DocumentFormat.OpenXml.Wordprocessing.HeaderFooterValues.Default, Id = main.GetIdOfPart(headerPart) },
+                    new DocumentFormat.OpenXml.Wordprocessing.FooterReference { Type = DocumentFormat.OpenXml.Wordprocessing.HeaderFooterValues.Default, Id = main.GetIdOfPart(footerPart) }
+                );
+
+                main.Document.Body = new DocumentFormat.OpenXml.Wordprocessing.Body(
+                    TestTemplates.P(TestTemplates.T("Họ tên khách hàng: ................................................................")),
+                    TestTemplates.P(new DocumentFormat.OpenXml.Wordprocessing.Run(new DocumentFormat.OpenXml.Wordprocessing.Picture(bodyShape))),
+                    sectionProps
+                );
+            }
+
+            var templateBytes = ms.ToArray();
+            using var templateStream = new MemoryStream(templateBytes);
+            using var template = new WordTemplate(templateStream);
+
+            var data = new Newtonsoft.Json.Linq.JObject
+            {
+                ["InvoiceSerial"] = "AA/26E-00123",
+                ["CustomerName"] = "Nguyen Van Binh",
+                ["SignerName"] = "Tran Van Giam Doc"
+            };
+
+            using var output = template.Export(data);
+            Assert.NotNull(output);
+
+            using var outDoc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(output!, false);
+            // Verify Header filled
+            var outHeader = outDoc.MainDocumentPart!.HeaderParts.First().Header;
+            Assert.Contains("AA/26E-00123", outHeader.InnerText);
+
+            // Verify Body filled
+            var outBody = outDoc.MainDocumentPart!.Document.Body!;
+            Assert.Contains("Nguyen Van Binh", outBody.InnerText);
+            Assert.Contains("Họ tên khách hàng: ................................................................", outBody.InnerText);
+
+            // Verify Footer filled
+            var outFooter = outDoc.MainDocumentPart!.FooterParts.First().Footer;
+            Assert.Contains("TRAN VAN GIAM DOC", outFooter.InnerText);
+        }
     }
 }

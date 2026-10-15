@@ -61,6 +61,11 @@ public partial class MainWindow : Window
                 if (TxtWatermarkText != null) TxtWatermarkText.Text = "OFFICIAL";
                 if (TxtWatermarkColor != null) TxtWatermarkColor.Text = "2563EB";
                 break;
+            case "preprinted":
+                if (TxtTemplateInfo != null) TxtTemplateInfo.Text = "Pre-printed Bill / Voucher: Uses transparent Text Shapes precisely positioned over dotted lines (...) in Header, Body, and Footer to guarantee zero displacement.";
+                if (TxtWatermarkText != null) TxtWatermarkText.Text = "ORIGINAL BILL";
+                if (TxtWatermarkColor != null) TxtWatermarkColor.Text = "94A3B8";
+                break;
             case "invoice":
                 if (TxtTemplateInfo != null) TxtTemplateInfo.Text = "Template: Invoice with table cloning, zebra striping, currency & loop metadata (_index, _first, _last).";
                 if (TxtWatermarkText != null) TxtWatermarkText.Text = "PAID";
@@ -114,6 +119,58 @@ public partial class MainWindow : Window
             };
 
             TxtJsonData.Text = JsonConvert.SerializeObject(showcaseData, Formatting.Indented);
+        }
+        else if (tag == "preprinted")
+        {
+            var preprintedData = new
+            {
+                // 1. Header Fields (Text Shapes over dots in Header)
+                InvoiceForm = "01GTKT0/001",
+                InvoiceSerial = "AA/26E",
+                InvoiceNo = 4589,
+                BillDay = DateTime.Now.ToString("dd"),
+                BillMonth = DateTime.Now.ToString("MM"),
+
+                // 2. Customer / Buyer Body Fields (Text Shapes over dots in Body)
+                CustomerName = "Ông Nguyễn Hoàng Nam",
+                CustomerCompany = "Công ty Cổ phần Công nghệ & Viễn thông Quốc tế",
+                CustomerTaxCode = "0109887766-001",
+                CustomerAddress = "Tòa nhà Center Point, 106 Nguyễn Văn Trỗi, P. 8, Phú Nhuận, TP.HCM",
+                PaymentMethod = "Chuyển khoản (TM/CK)",
+                BankAccount = "19038899887701 (Techcombank)",
+
+                // 3. Pre-printed Table Row Items
+                Item1_Name = "Máy chủ Dell PowerEdge R750 (2x Intel Xeon Gold, 128GB RAM)",
+                Item1_Unit = "Bộ",
+                Item1_Qty = 2,
+                Item1_Price = 85000000,
+                Item1_Amount = 170000000,
+
+                Item2_Name = "Thiết bị mạng Cisco Catalyst 9200L 48 Ports PoE+",
+                Item2_Unit = "Chiếc",
+                Item2_Qty = 1,
+                Item2_Price = 42000000,
+                Item2_Amount = 42000000,
+
+                Item3_Name = "Gói dịch vụ triển khai hạ tầng & cấu hình bảo mật 24/7",
+                Item3_Unit = "Gói",
+                Item3_Qty = 1,
+                Item3_Price = 18000000,
+                Item3_Amount = 18000000,
+
+                // 4. Financial Totals (Text Shapes over dots in Summary)
+                Subtotal = 230000000,
+                VatAmount = 23000000,
+                TotalAmount = 253000000,
+                TotalInWords = "Hai trăm năm mươi ba triệu đồng chẵn.",
+
+                // 5. Footer Signatures (Text Shapes over dots in Footer)
+                BuyerSign = "Nguyễn Hoàng Nam",
+                DelivererSign = "Lê Thanh Tùng",
+                ManagerSign = "Trần Đình Trọng"
+            };
+
+            TxtJsonData.Text = JsonConvert.SerializeObject(preprintedData, Formatting.Indented);
         }
         else if (tag == "invoice")
         {
@@ -390,12 +447,202 @@ public partial class MainWindow : Window
             return BuildShowcaseTemplate();
         }
 
+        if (tag == "preprinted")
+        {
+            return BuildPreprintedBillTemplate();
+        }
+
         if (tag == "invoice")
         {
             return BuildInvoiceTemplate();
         }
 
         return BuildEmployeeTemplate();
+    }
+
+    private static Run CreateTextShape(string fieldCode, double leftPt, double topPt, double widthPt, double heightPt, string fontColor = "0F172A", string fontSizeHalfPt = "22", bool bold = false, bool italic = false)
+    {
+        var shape = new DocumentFormat.OpenXml.Vml.Shape
+        {
+            Id = "Shape_" + Guid.NewGuid().ToString("N"),
+            Style = $"position:absolute;margin-left:{leftPt:F1}pt;margin-top:{topPt:F1}pt;width:{widthPt:F1}pt;height:{heightPt:F1}pt;z-index:251658240;mso-position-horizontal:absolute;mso-position-vertical:absolute",
+            Filled = false,
+            Stroked = false
+        };
+
+        var txbx = new DocumentFormat.OpenXml.Vml.TextBox
+        {
+            Style = "mso-fit-shape-to-text:t"
+        };
+
+        var runProps = new RunProperties();
+        if (bold) runProps.Append(new Bold());
+        if (italic) runProps.Append(new Italic());
+        if (!string.IsNullOrEmpty(fontColor)) runProps.Append(new Color { Val = fontColor });
+        if (!string.IsNullOrEmpty(fontSizeHalfPt)) runProps.Append(new FontSize { Val = fontSizeHalfPt });
+
+        var field = F(fieldCode);
+        var innerRun = field.Descendants<Run>().FirstOrDefault();
+        if (innerRun != null)
+        {
+            innerRun.RunProperties = (RunProperties)runProps.CloneNode(true);
+        }
+
+        var p = new Paragraph(
+            new ParagraphProperties(new SpacingBetweenLines { Before = "0", After = "0", Line = "240", LineRule = LineSpacingRuleValues.Auto }),
+            field
+        );
+
+        var txbxContent = new TextBoxContent(p);
+        txbx.Append(txbxContent);
+        shape.Append(txbx);
+
+        return new Run(new Picture(shape));
+    }
+
+    public static byte[] BuildPreprintedBillTemplate()
+    {
+        using var ms = new MemoryStream();
+        using (var doc = WordprocessingDocument.Create(ms, WordprocessingDocumentType.Document))
+        {
+            var main = doc.AddMainDocumentPart();
+            main.Document = new Document();
+
+            // 1. Header with exact text shapes over pre-printed dots
+            var headerPart = main.AddNewPart<HeaderPart>();
+            headerPart.Header = new Header(
+                P(T("CÔNG TY CỔ PHẦN THIẾT BỊ & CÔNG NGHỆ Á CHÂU", true, "1E293B", "24")),
+                P(T("MST: 0101234567-001  |  ĐC: 456 Hoàng Hoa Thám, Ba Đình, Hà Nội  |  Hotline: 1900-6868", false, "64748B", "18")),
+                P(
+                    T("Mẫu số: ....................       Ký hiệu: ....................       Số: ....................", false, "475569", "20"),
+                    CreateTextShape("InvoiceForm", leftPt: 40, topPt: -2, widthPt: 85, heightPt: 16, fontColor: "1E293B", bold: true),
+                    CreateTextShape("InvoiceSerial", leftPt: 175, topPt: -2, widthPt: 75, heightPt: 16, fontColor: "1E293B", bold: true),
+                    CreateTextShape("padleft(InvoiceNo, 7, '0')", leftPt: 295, topPt: -3, widthPt: 90, heightPt: 18, fontColor: "DC2626", fontSizeHalfPt: "26", bold: true)
+                ),
+                P(
+                    T("Ngày lập hóa đơn: Ngày ..... tháng ..... năm 2026", false, "475569", "20"),
+                    CreateTextShape("BillDay", leftPt: 110, topPt: -2, widthPt: 25, heightPt: 16, fontColor: "1E293B", bold: true),
+                    CreateTextShape("BillMonth", leftPt: 170, topPt: -2, widthPt: 25, heightPt: 16, fontColor: "1E293B", bold: true)
+                )
+            );
+
+            // 2. Footer with exact text shapes for signatures
+            var footerPart = main.AddNewPart<FooterPart>();
+            footerPart.Footer = new Footer(
+                P(
+                    T("Người mua hàng                                 Người giao hàng                                 Thủ trưởng đơn vị", true, "334155", "20")
+                ),
+                P(
+                    T("(Ký, ghi rõ họ tên)                             (Ký, ghi rõ họ tên)                             (Ký, đóng dấu, họ tên)", false, "64748B", "18")
+                ),
+                P(
+                    T("...................................             ...................................             ...................................", false, "94A3B8", "20"),
+                    CreateTextShape("BuyerSign", leftPt: 10, topPt: 15, widthPt: 130, heightPt: 18, fontColor: "1E293B", bold: true),
+                    CreateTextShape("DelivererSign", leftPt: 175, topPt: 15, widthPt: 130, heightPt: 18, fontColor: "1E293B", bold: true),
+                    CreateTextShape("ManagerSign:upper()", leftPt: 345, topPt: 15, widthPt: 140, heightPt: 18, fontColor: "1E293B", bold: true)
+                )
+            );
+
+            var sectionProps = new SectionProperties(
+                new HeaderReference { Type = HeaderFooterValues.Default, Id = main.GetIdOfPart(headerPart) },
+                new FooterReference { Type = HeaderFooterValues.Default, Id = main.GetIdOfPart(footerPart) }
+            );
+
+            // Table Header on Pre-printed Bill
+            var tableHeader = new TableRow(
+                C(P(T("STT", true, "1E293B")), bgColor: "F1F5F9"),
+                C(P(T("Tên hàng hóa, dịch vụ", true, "1E293B")), bgColor: "F1F5F9"),
+                C(P(T("ĐVT", true, "1E293B")), bgColor: "F1F5F9"),
+                C(P(T("Số lượng", true, "1E293B")), bgColor: "F1F5F9"),
+                C(P(T("Đơn giá", true, "1E293B")), bgColor: "F1F5F9"),
+                C(P(T("Thành tiền (VNĐ)", true, "1E293B")), bgColor: "F1F5F9")
+            );
+
+            var row1 = new TableRow(
+                C(P(T("1"))),
+                C(P(F("Item1_Name"))),
+                C(P(F("Item1_Unit"))),
+                C(P(F("Item1_Qty:number('#,##0')"))),
+                C(P(F("Item1_Price:currency(vi-VN)"))),
+                C(P(F("Item1_Amount:currency(vi-VN)")))
+            );
+
+            var row2 = new TableRow(
+                C(P(T("2"))),
+                C(P(F("Item2_Name"))),
+                C(P(F("Item2_Unit"))),
+                C(P(F("Item2_Qty:number('#,##0')"))),
+                C(P(F("Item2_Price:currency(vi-VN)"))),
+                C(P(F("Item2_Amount:currency(vi-VN)")))
+            );
+
+            var row3 = new TableRow(
+                C(P(T("3"))),
+                C(P(F("Item3_Name"))),
+                C(P(F("Item3_Unit"))),
+                C(P(F("Item3_Qty:number('#,##0')"))),
+                C(P(F("Item3_Price:currency(vi-VN)"))),
+                C(P(F("Item3_Amount:currency(vi-VN)")))
+            );
+
+            // 3. Body with dotted background lines & overlay Text Shapes
+            var body = new Body(
+                P(T("HÓA ĐƠN BÁN HÀNG / GIÁ TRỊ GIA TĂNG", true, "0F172A", "32")),
+                P(T("(Bản in phôi sẵn - Khắc phục sai lệch vị trí bằng Text Shape)", false, "64748B", "18")),
+                P(),
+                // Pre-printed Dotted Field 1: Customer Name
+                P(
+                    T("Họ tên người mua hàng: ............................................................................................................", false, "475569", "20"),
+                    CreateTextShape("CustomerName", leftPt: 130, topPt: -2, widthPt: 320, heightPt: 18, fontColor: "0F172A", bold: true)
+                ),
+                // Pre-printed Dotted Field 2: Company Name
+                P(
+                    T("Tên đơn vị (Doanh nghiệp): ....................................................................................................", false, "475569", "20"),
+                    CreateTextShape("CustomerCompany", leftPt: 140, topPt: -2, widthPt: 320, heightPt: 18, fontColor: "0F172A", bold: false)
+                ),
+                // Pre-printed Dotted Field 3: Tax Code
+                P(
+                    T("Mã số thuế: ............................................................................................................................", false, "475569", "20"),
+                    CreateTextShape("CustomerTaxCode", leftPt: 75, topPt: -2, widthPt: 180, heightPt: 18, fontColor: "0F172A", bold: true)
+                ),
+                // Pre-printed Dotted Field 4: Address
+                P(
+                    T("Địa chỉ trụ sở / giao hàng: ......................................................................................................", false, "475569", "20"),
+                    CreateTextShape("CustomerAddress", leftPt: 135, topPt: -2, widthPt: 330, heightPt: 18, fontColor: "0F172A", bold: false)
+                ),
+                // Pre-printed Dotted Field 5: Payment method & bank
+                P(
+                    T("Hình thức thanh toán: ........................................   Số tài khoản: .................................................", false, "475569", "20"),
+                    CreateTextShape("PaymentMethod", leftPt: 125, topPt: -2, widthPt: 100, heightPt: 18, fontColor: "0F172A"),
+                    CreateTextShape("BankAccount", leftPt: 295, topPt: -2, widthPt: 170, heightPt: 18, fontColor: "0F172A")
+                ),
+                P(),
+                // Items Table
+                new Table(tableHeader, row1, row2, row3),
+                P(),
+                // Financial Totals over Pre-printed dots
+                P(
+                    T("Cộng tiền hàng: ............................................................................................................................", false, "475569", "20"),
+                    CreateTextShape("Subtotal:currency(vi-VN)", leftPt: 105, topPt: -2, widthPt: 200, heightPt: 18, fontColor: "0F172A", bold: true)
+                ),
+                P(
+                    T("Tiền thuế GTGT (10%): ...............................................................................................................", false, "475569", "20"),
+                    CreateTextShape("VatAmount:currency(vi-VN)", leftPt: 140, topPt: -2, widthPt: 200, heightPt: 18, fontColor: "0F172A", bold: true)
+                ),
+                P(
+                    T("Tổng cộng tiền thanh toán: .....................................................................................................", true, "0F172A", "22"),
+                    CreateTextShape("TotalAmount:currency(vi-VN)", leftPt: 160, topPt: -3, widthPt: 220, heightPt: 20, fontColor: "DC2626", fontSizeHalfPt: "24", bold: true)
+                ),
+                P(
+                    T("Số tiền viết bằng chữ: .................................................................................................................", false, "475569", "20"),
+                    CreateTextShape("TotalInWords", leftPt: 130, topPt: -2, widthPt: 330, heightPt: 18, fontColor: "0F172A", fontSizeHalfPt: "20", bold: true, italic: true)
+                ),
+                sectionProps
+            );
+
+            main.Document.Body = body;
+        }
+        return ms.ToArray();
     }
 
     public static byte[] BuildShowcaseTemplate()

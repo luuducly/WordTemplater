@@ -16,6 +16,7 @@ No Microsoft Office installation or COM Interop required. Runs seamlessly on Win
 - [Key Features](#key-features)
 - [Installation](#installation)
 - [How It Works](#how-it-works)
+- [Interactive Desktop GUI Studio](#interactive-desktop-gui-studio)
 - [Quick Start](#quick-start)
 - [Template Syntax & Evaluators Cheat Sheet](#template-syntax--evaluators-cheat-sheet)
   - [1. Text & String Formatting](#1-text--string-formatting)
@@ -88,17 +89,62 @@ Install-Package WordTemplater -Version 2.1.6
 ## How It Works
 
 <p align="center">
-  <img alt="Word template file sample" src="https://github.com/user-attachments/assets/cf5c858b-4796-4040-840f-955155fa0358" width="850"/>
+  <img alt="WordTemplater Full Showcase Template" src="docs/images/full_template_showcase.png" width="920"/>
 </p>
 
-1. **Create Template**: Open Microsoft Word, press `Ctrl + F9` (or `Insert -> Quick Parts -> Field -> MergeField`) and type your placeholder:
-   ```text
-   «Customer.Name»
-   «currency(TotalAmount, 'en-US')»
-   «image(Avatar)»
-   ```
-2. **Bind Data**: Pass any C# POCO object, `JObject`, or dictionary.
-3. **Export Document**: Generate a clean, populated `.docx` file or memory stream.
+WordTemplater bridges visual document authoring in Microsoft Word with high-performance, automated data binding:
+
+1. **Design Visually in Microsoft Word**:
+   - Insert standard Word **MergeFields** (`Ctrl + F9` or `Insert -> Quick Parts -> Field -> MergeField`) or simple guillemets (`«field»`).
+   - Use built-in formatters and evaluators directly within field codes:
+     - **Text & Padding**: `«upper(Name)»`, `«padleft(DocId, 8, '0')»`, `«date(CreatedAt, 'dd/MM/yyyy')»`
+     - **Financial & Numeric**: `«currency(Total, 'vi-VN')»`, `«percentage(TaxRate)»`, `«number(Qty, '#,##0')»`
+     - **Machine-Readable Identifiers**: `«qrcode(Url)»`, `«barcode(Sku)»`, `«image(Logo)»`
+     - **Rich Media & Ingestion**: `«html(Notes)»`, `«mermaid(WorkflowDiagram)»`
+     - **Conditional Branches**: `«if(Score >= 80, 'VIP Tier', 'Standard')»`
+     - **Dynamic Tables & Loops**: `«table(Products)»` ... `«endtable»`, `«loop(Items)»` ... `«endloop»`
+     - **Exact Pre-printed Overlays**: Absolute-positioned **DrawingML Text Shapes** positioned seamlessly over pre-printed dot lines (`.......`) in headers, bodies, or footers.
+
+2. **Supply Data**:
+   - Bind any data model: C# POCO classes, anonymous objects, `Newtonsoft.Json.Linq.JObject`, raw JSON strings, or dictionaries.
+   - Access deeply nested properties (`Customer.Address.City`) and array items (`Items[0].Price`) case-insensitively.
+
+3. **Export High-Fidelity Documents**:
+   - WordTemplater parses the document XML, clones repeating table rows, formats numbers/dates, renders QR/barcodes/diagrams, and outputs a complete `.docx` file or memory stream in milliseconds with **zero Microsoft Office dependency**.
+
+---
+
+## Interactive Desktop GUI Studio
+
+A cross-platform desktop application built with [Avalonia UI](https://avaloniaui.net/) is included directly in the repository at [`examples/WordTemplater.Desktop`](examples/WordTemplater.Desktop). It allows developers and designers to test features, experiment with templates, edit JSON payloads, and inspect generated documents instantly on **macOS, Linux, and Windows**.
+
+### Launching the Studio
+
+Run the application with a single CLI command from the repository root:
+
+```bash
+dotnet run --project examples/WordTemplater.Desktop
+```
+
+### Key Capabilities
+
+- 🌟 **Built-in Interactive Templates**:
+  - **Enterprise Full Showcase**: Comprehensive template demonstrating QR codes, Code128 barcodes, raster images, inline conditions, HTML altChunks, Mermaid diagrams, table row cloning, and currency formatters.
+  - **Pre-printed Bill / Voucher**: Demonstrates absolute DrawingML Text Shapes positioned directly over pre-printed dotted blank lines (`.....`) across Header, Body, and Signatures.
+  - **Invoice & Employee Summaries**: Tables with dynamic zebra striping, currency formatters, and deep JSON structures.
+  - **Custom DOCX Picker**: Load and test your own external `.docx` template files.
+- ✏️ **Direct In-Word Template Redesign**:
+  - Click the **"✏️ Mở File Template trong Word (.docx)"** button to immediately open any template in Microsoft Word.
+  - Drag, resize, or reposition text shapes and edit fields visually in Word, save (`Cmd + S` / `Ctrl + S`), and the Desktop App automatically reloads your changes on the next export.
+- 📝 **Live JSON Editor**:
+  - Full-featured JSON editor with automatic sample data population for each template.
+  - **✨ Format JSON** button for instant pretty-printing and formatting.
+- 🎨 **Visual Export Controls**:
+  - Toggle and customize dynamic text watermarks (text, hex color, rotation angle).
+  - Enable table zebra striping with custom odd and even row background colors.
+- ⚡ **Instant Export & Document Viewer**:
+  - Click **"⚡ Generate & Export Document"** to render in milliseconds.
+  - Click **"📖 Open Exported Document (.docx)"** to inspect the finished document in your default word processor.
 
 ---
 

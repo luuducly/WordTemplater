@@ -361,5 +361,136 @@ namespace WordTemplater.Tests
             }
             return ms.ToArray();
         }
+
+        private static Run T(string text, bool bold = false, string? color = null, string? size = null)
+        {
+            var runProps = new RunProperties();
+            if (bold) runProps.Append(new Bold());
+            if (!string.IsNullOrEmpty(color)) runProps.Append(new Color { Val = color });
+            if (!string.IsNullOrEmpty(size)) runProps.Append(new FontSize { Val = size });
+            return new Run(runProps, new Text(text) { Space = SpaceProcessingModeValues.Preserve });
+        }
+
+        private static TableCell C(OpenXmlElement content, string? bgColor = null)
+        {
+            var cell = new TableCell(content);
+            if (!string.IsNullOrEmpty(bgColor))
+            {
+                cell.Append(new TableCellProperties(new Shading { Val = ShadingPatternValues.Clear, Color = "auto", Fill = bgColor }));
+            }
+            return cell;
+        }
+
+        public static byte[] BuildShowcaseTemplate()
+        {
+            using var ms = new MemoryStream();
+            using (var doc = WordprocessingDocument.Create(ms, WordprocessingDocumentType.Document))
+            {
+                var main = doc.AddMainDocumentPart();
+
+                var tableProps = new TableProperties(
+                    new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct },
+                    new TableBorders(
+                        new TopBorder { Val = BorderValues.Single, Size = 4, Color = "CBD5E1" },
+                        new BottomBorder { Val = BorderValues.Single, Size = 4, Color = "CBD5E1" },
+                        new InsideHorizontalBorder { Val = BorderValues.Single, Size = 4, Color = "E2E8F0" },
+                        new InsideVerticalBorder { Val = BorderValues.None },
+                        new LeftBorder { Val = BorderValues.None },
+                        new RightBorder { Val = BorderValues.None }
+                    )
+                );
+
+                var prodHeader = new TableRow(
+                    C(P(T("#", true, "1E293B")), bgColor: "E2E8F0"),
+                    C(P(T("SKU", true, "1E293B")), bgColor: "E2E8F0"),
+                    C(P(T("Description", true, "1E293B")), bgColor: "E2E8F0"),
+                    C(P(T("Qty", true, "1E293B")), bgColor: "E2E8F0"),
+                    C(P(T("Unit Price", true, "1E293B")), bgColor: "E2E8F0"),
+                    C(P(T("Total", true, "1E293B")), bgColor: "E2E8F0")
+                );
+
+                var prodRow = new TableRow(
+                    C(P(F("_index"))),
+                    C(P(F("Sku:upper()"))),
+                    C(P(F("Name"))),
+                    C(P(F("Qty:number(#,##0)"))),
+                    C(P(F("Price:currency(en-US)"))),
+                    C(P(F("LineTotal:currency(en-US)")))
+                );
+
+                var body = new Body(
+                    // 1. Header Banner & Title
+                    P(T("WORDTEMPLATER ENTERPRISE SHOWCASE", true, "0F172A", "36")),
+                    P(T("Comprehensive Multi-Data-Type Test Suite for OpenXML Document Automation", false, "64748B", "20")),
+                    P(),
+
+                    // 2. Raster Image (Logo)
+                    P(T("1. Embedded Raster Image (Base64 PNG):", true, "1E293B", "22")),
+                    P(F("image(LogoImage)")),
+                    P(),
+
+                    // 3. Document Metadata & String Formatting
+                    P(T("2. Document Metadata & String Formatting:", true, "1E293B", "22")),
+                    P(T("Document ID (Padded 8 digits): ", true), F("padleft(DocId, 8, '0')"),
+                      T("   |   Reference: ", true), F("RefCode:padright(12, '*')")),
+                    P(T("Generated At: ", true), F("date(GeneratedAt, 'dddd, dd MMMM yyyy HH:mm', 'en-US')")),
+                    P(),
+
+                    // 4. Machine-Readable Identifiers (QR Code & Barcode)
+                    P(T("3. Visual Machine-Readable Codes (QR Code & Barcode):", true, "1E293B", "22")),
+                    P(T("1D Tracking Barcode (Code128):", true, "334155")),
+                    P(F("barcode(BarcodePayload)")),
+                    P(T("Barcode Value: ", true), F("BarcodePayload")),
+                    P(),
+                    P(T("2D Verification QR Code:", true, "334155")),
+                    P(F("qrcode(QrPayload)")),
+                    P(T("Encoded Target URL: ", true), F("QrPayload")),
+                    P(),
+
+                    // 5. Conditional Logic & Dynamic Branches
+                    P(T("4. Conditional Logic & Dynamic Branches:", true, "1E293B", "22")),
+                    P(T("Verification Status (Inline Boolean): ", true),
+                      F("if(IsVerified, 'VERIFIED & CERTIFIED (Digital Signature Valid)', 'UNVERIFIED DRAFT')")),
+                    P(T("Performance Incentive (Inline Boolean): ", true),
+                      F("if(HasBonus, 'APPROVED - Performance Bonus Granted', 'NOT ELIGIBLE')")),
+                    P(T("VIP Tier Assessment (Inline Comparison Score >= 80): ", true),
+                      F("if(Score >= 80, 'PLATINUM VIP (Tier 1)', 'STANDARD MEMBER')")),
+                    P(),
+
+                    // Page break for clean layout
+                    P(new Run(new Break { Type = BreakValues.Page })),
+
+                    // 6. Dynamic Repeating Table with Evaluators & Zebra Striping
+                    P(T("5. Dynamic Repeating Table with Evaluators & Zebra Striping:", true, "1E293B", "22")),
+                    P(F("table(Products)")),
+                    new Table(tableProps, prodHeader, prodRow),
+                    P(F("endtable")),
+                    P(),
+
+                    // Financial Summary
+                    P(T("Subtotal: ", true), F("Subtotal:currency(en-US)"),
+                      T("   |   Tax Rate: ", true), F("TaxRate:percentage(2)"),
+                      T("   |   Net Total: ", true, "0F172A", "24"), F("Total:currency(en-US)")),
+                    P(),
+
+                    // 7. Rich Formatted HTML Content
+                    P(T("6. Rich Formatted HTML Content (AltChunk Ingestion):", true, "1E293B", "22")),
+                    P(F("html(HtmlNotes)")),
+                    P(),
+
+                    // 8. Mermaid Architecture Diagram
+                    P(T("7. Mermaid Architecture Diagram (Automated Kroki Service):", true, "1E293B", "22")),
+                    P(F("mermaid(ArchitectureDiagram)")),
+
+                    new SectionProperties(
+                        new PageSize { Width = 11906, Height = 16838 },
+                        new PageMargin { Top = 1000, Bottom = 1000, Left = 1000, Right = 1000 }
+                    )
+                );
+
+                main.Document = new Document(body);
+            }
+            return ms.ToArray();
+        }
     }
 }

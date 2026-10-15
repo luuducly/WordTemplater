@@ -771,21 +771,31 @@ public partial class MainWindow : Window
         {
             var main = doc.AddMainDocumentPart();
 
+            var tableProps = new TableProperties(
+                new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct },
+                new TableBorders(
+                    new TopBorder { Val = BorderValues.Single, Size = 4, Color = "CBD5E1" },
+                    new BottomBorder { Val = BorderValues.Single, Size = 4, Color = "CBD5E1" },
+                    new InsideHorizontalBorder { Val = BorderValues.Single, Size = 4, Color = "E2E8F0" },
+                    new InsideVerticalBorder { Val = BorderValues.None },
+                    new LeftBorder { Val = BorderValues.None },
+                    new RightBorder { Val = BorderValues.None }
+                )
+            );
+
             var prodHeader = new TableRow(
                 C(P(T("#", true, "1E293B")), bgColor: "E2E8F0"),
                 C(P(T("SKU", true, "1E293B")), bgColor: "E2E8F0"),
-                C(P(T("Product / Service Description", true, "1E293B")), bgColor: "E2E8F0"),
-                C(P(T("Category", true, "1E293B")), bgColor: "E2E8F0"),
+                C(P(T("Description", true, "1E293B")), bgColor: "E2E8F0"),
                 C(P(T("Qty", true, "1E293B")), bgColor: "E2E8F0"),
                 C(P(T("Unit Price", true, "1E293B")), bgColor: "E2E8F0"),
-                C(P(T("Line Total", true, "1E293B")), bgColor: "E2E8F0")
+                C(P(T("Total", true, "1E293B")), bgColor: "E2E8F0")
             );
 
             var prodRow = new TableRow(
                 C(P(F("_index"))),
                 C(P(F("Sku:upper()"))),
                 C(P(F("Name"))),
-                C(P(F("Category:lower()"))),
                 C(P(F("Qty:number(#,##0)"))),
                 C(P(F("Price:currency(en-US)"))),
                 C(P(F("LineTotal:currency(en-US)")))
@@ -830,10 +840,13 @@ public partial class MainWindow : Window
                   F("if(Score >= 80, 'PLATINUM VIP (Tier 1)', 'STANDARD MEMBER')")),
                 P(),
 
+                // Page break for clean layout
+                P(new Run(new Break { Type = BreakValues.Page })),
+
                 // 6. Dynamic Repeating Table with Evaluators & Zebra Striping
                 P(T("5. Dynamic Repeating Table with Evaluators & Zebra Striping:", true, "1E293B", "22")),
                 P(F("table(Products)")),
-                new Table(prodHeader, prodRow),
+                new Table(tableProps, prodHeader, prodRow),
                 P(F("endtable")),
                 P(),
 
@@ -850,7 +863,12 @@ public partial class MainWindow : Window
 
                 // 8. Mermaid Architecture Diagram
                 P(T("7. Mermaid Architecture Diagram (Automated Kroki Service):", true, "1E293B", "22")),
-                P(F("mermaid(ArchitectureDiagram)"))
+                P(F("mermaid(ArchitectureDiagram)")),
+
+                new SectionProperties(
+                    new PageSize { Width = 11906, Height = 16838 },
+                    new PageMargin { Top = 1000, Bottom = 1000, Left = 1000, Right = 1000 }
+                )
             );
 
             main.Document = new Document(body);

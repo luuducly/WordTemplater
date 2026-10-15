@@ -496,5 +496,19 @@ namespace WordTemplater.Tests
             Assert.Contains("Trần Văn B", footerXml);
             Assert.Contains("LÊ VĂN C", footerXml);
         }
+
+        [Fact]
+        public void Export_DesktopShowcaseTemplate_SavesTemplateAndOutputs()
+        {
+            byte[] tplBytes = TestTemplates.BuildShowcaseTemplate();
+            string templateDir = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../../../examples/WordTemplater.Desktop/Templates"));
+            if (Directory.Exists(templateDir))
+            {
+                string targetPath = Path.Combine(templateDir, "ShowcaseTemplate.docx");
+                File.WriteAllBytes(targetPath, tplBytes);
+            }
+            Assert.NotNull(tplBytes);
+            Assert.True(tplBytes.Length > 0);
+        }
     }
 }

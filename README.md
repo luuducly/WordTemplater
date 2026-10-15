@@ -12,6 +12,7 @@ No Microsoft Office installation or COM Interop required. Runs seamlessly on Win
 ---
 
 ## Table of Contents
+- [Multi-Language Ecosystem](#multi-language-ecosystem)
 - [Key Features](#key-features)
 - [Installation](#installation)
 - [How It Works](#how-it-works)
@@ -30,6 +31,19 @@ No Microsoft Office installation or COM Interop required. Runs seamlessly on Win
 - [Advanced Export Options](#advanced-export-options)
 - [Running Tests & Example Project](#running-tests--example-project)
 - [License](#license)
+
+---
+
+## Multi-Language Ecosystem
+
+WordTemplater is available across multiple programming languages with matching template syntax and feature parity:
+
+| Language | Repository | Package / Install |
+| :--- | :--- | :--- |
+| **C# (.NET)** *(This repository)* | [WordTemplater](https://github.com/luuducly/WordTemplater) | `dotnet add package WordTemplater` |
+| **TypeScript / JavaScript** | [WordTemplater-ts](https://github.com/luuducly/WordTemplater-ts) | `npm install wordtemplater-ts` |
+| **Python** | [WordTemplater-python](https://github.com/luuducly/WordTemplater-python) | `pip install wordtemplater` |
+| **Java** | [WordTemplater-java](https://github.com/luuducly/WordTemplater-java) | `com.github.luuducly:wordtemplater` |
 
 ---
 

@@ -38,7 +38,7 @@
                     <StackPanel Spacing="10">
                         <TextBlock Text="1. Template Source" FontWeight="SemiBold" FontSize="14" Foreground="#E2E8F0"/>
                         <ComboBox Name="ComboTemplates" HorizontalAlignment="Stretch" SelectionChanged="OnTemplateSelectionChanged">
-                            <ComboBoxItem Content="📄 Built-in Invoice Template (Tables, Zebra, Currency, Watermark)" Tag="invoice" IsSelected="True"/>
+                            <ComboBoxItem Content="📄 Built-in Invoice Template (Tables, Zebra, Currency, Watermark)" Tag="invoice"/>
                             <ComboBoxItem Content="👤 Built-in Employee Summary (Deep JSON, Evaluators, Dates)" Tag="employee"/>
                             <ComboBoxItem Content="📁 Browse Custom DOCX File..." Tag="custom"/>
                         </ComboBox>

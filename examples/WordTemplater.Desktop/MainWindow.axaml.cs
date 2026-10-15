@@ -22,6 +22,10 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         InitializeDefaultPaths();
+        if (ComboTemplates != null)
+        {
+            ComboTemplates.SelectedIndex = 0;
+        }
         LoadSampleDataForSelectedTemplate();
         AppendLog("WordTemplater Studio initialized successfully.");
     }
@@ -34,30 +38,33 @@ public partial class MainWindow : Window
             Directory.CreateDirectory(defaultOutputDir);
         }
 
-        TxtOutputPath.Text = Path.Combine(defaultOutputDir, "Exported_Document.docx");
+        if (TxtOutputPath != null)
+        {
+            TxtOutputPath.Text = Path.Combine(defaultOutputDir, "Exported_Document.docx");
+        }
     }
 
     private void OnTemplateSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (ComboTemplates.SelectedItem is not ComboBoxItem selectedItem) return;
+        if (ComboTemplates == null || ComboTemplates.SelectedItem is not ComboBoxItem selectedItem) return;
 
         string tag = selectedItem.Tag?.ToString() ?? "invoice";
-        PanelCustomTemplate.IsVisible = (tag == "custom");
+        if (PanelCustomTemplate != null) PanelCustomTemplate.IsVisible = (tag == "custom");
 
         switch (tag)
         {
             case "invoice":
-                TxtTemplateInfo.Text = "Template: Invoice with table cloning, zebra striping, currency & loop metadata (_index, _first, _last).";
-                TxtWatermarkText.Text = "PAID";
-                TxtWatermarkColor.Text = "10B981";
+                if (TxtTemplateInfo != null) TxtTemplateInfo.Text = "Template: Invoice with table cloning, zebra striping, currency & loop metadata (_index, _first, _last).";
+                if (TxtWatermarkText != null) TxtWatermarkText.Text = "PAID";
+                if (TxtWatermarkColor != null) TxtWatermarkColor.Text = "10B981";
                 break;
             case "employee":
-                TxtTemplateInfo.Text = "Template: Employee Profile testing deep JSON property paths (Employee.Address.City) and evaluators.";
-                TxtWatermarkText.Text = "CONFIDENTIAL";
-                TxtWatermarkColor.Text = "DC2626";
+                if (TxtTemplateInfo != null) TxtTemplateInfo.Text = "Template: Employee Profile testing deep JSON property paths (Employee.Address.City) and evaluators.";
+                if (TxtWatermarkText != null) TxtWatermarkText.Text = "CONFIDENTIAL";
+                if (TxtWatermarkColor != null) TxtWatermarkColor.Text = "DC2626";
                 break;
             case "custom":
-                TxtTemplateInfo.Text = "Custom Template: Choose any .docx file with standard MergeFields or «field» syntax.";
+                if (TxtTemplateInfo != null) TxtTemplateInfo.Text = "Custom Template: Choose any .docx file with standard MergeFields or «field» syntax.";
                 break;
         }
 
@@ -66,7 +73,7 @@ public partial class MainWindow : Window
 
     private void LoadSampleDataForSelectedTemplate()
     {
-        if (ComboTemplates == null || ComboTemplates.SelectedItem is not ComboBoxItem selectedItem) return;
+        if (ComboTemplates == null || TxtJsonData == null || ComboTemplates.SelectedItem is not ComboBoxItem selectedItem) return;
 
         string tag = selectedItem.Tag?.ToString() ?? "invoice";
 
@@ -515,6 +522,7 @@ public partial class MainWindow : Window
 
     private void AppendLog(string message)
     {
+        if (TxtLogs == null) return;
         string timestamp = DateTime.Now.ToString("HH:mm:ss");
         string line = $"[{timestamp}] {message}";
         if (string.IsNullOrEmpty(TxtLogs.Text))

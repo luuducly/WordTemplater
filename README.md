@@ -56,12 +56,12 @@ Install the package via NuGet:
 
 ### .NET CLI
 ```bash
-dotnet add package WordTemplater
+dotnet add package WordTemplater --version 2.1.6
 ```
 
 ### Package Manager Console
 ```powershell
-Install-Package WordTemplater
+Install-Package WordTemplater -Version 2.1.6
 ```
 
 ### PackageReference

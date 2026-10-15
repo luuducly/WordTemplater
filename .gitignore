@@ -13,3 +13,4 @@ _ReSharper.*
 *.docx
 *.nupkg
 .DS_Store
+*.received.txt

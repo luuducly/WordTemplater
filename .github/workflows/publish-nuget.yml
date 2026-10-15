@@ -8,6 +8,9 @@ on:
 jobs:
   build-and-publish-nuget-package:
     runs-on: ubuntu-latest # You can change to windows-latest if needed
+    permissions:
+      contents: read
+      id-token: write # Trusted Publishing: GitHub issues an OIDC token that nuget.org exchanges for a 1-hour API key
 
     steps:
       # Step 1: Checkout the repository
@@ -40,15 +43,23 @@ jobs:
           VERSION=${VERSION#v}
           dotnet pack src/WordTemplater/WordTemplater.csproj -c Release -p:Version=$VERSION --output ./nupkg
 
-      # Step 6: Publish to NuGet
+      # Step 6: Get a short-lived NuGet API key (Trusted Publishing policy on nuget.org, no stored secret)
+      - name: NuGet login (OIDC → temp API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: luuducly # nuget.org username (profile name), not email
+
+      # Step 7: Publish to NuGet
       - name: Push to NuGet
         run: |
-          dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          dotnet nuget push ./nupkg/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
   build-and-publish-github-packages:
     runs-on: ubuntu-latest # You can change to windows-latest if needed
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       # Step 1: Checkout the repository
@@ -82,6 +93,4 @@ jobs:
       # Step 5: Publish to GitHub Packages
       - name: Push to GitHub Packages
         run: |
-          dotnet nuget push ./github-packages/*.nupkg --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key ${{ secrets.WT_TOKEN }} --skip-duplicate
-        env:
-          WT_TOKEN: ${{ secrets.WT_TOKEN }}
+          dotnet nuget push ./github-packages/*.nupkg --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate

@@ -16,7 +16,7 @@ namespace WordTemplater
     public static readonly SKColor DEFAULT_DARK_COLOR = SKColor.Parse("000000");
     public static readonly SKColor DEFAULT_LIGHT_COLOR = SKColor.Empty;
     public static readonly string DEFAULT_IMAGE_FILE_NAME = "{0}.png";
-    public static readonly string PARSER_PARAM_REGEX = @"\s*(?:(?:""([^""]*(?:'[^""]*)*)"")|(?:'([^']*(?:\""[^']*)*)')|([^,'""]+))\s*(?:,|$)";
+    public const string PARSER_PARAM_REGEX = @"\s*(?:(?:""([^""]*(?:'[^""]*)*)"")|(?:'([^']*(?:\""[^']*)*)')|([^,'""]+))\s*(?:,|$)";
     public static readonly string MERGEFIELD = "MERGEFIELD  ";
     public static readonly string MERGEFORMAT = "  \\* MERGEFORMAT";
     public static readonly string CURRENT_NODE = ".";

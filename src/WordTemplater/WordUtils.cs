@@ -20,12 +20,14 @@ namespace WordTemplater
         start = start.Parent;
         end = end.Parent;
       }
+      // "x has end as a descendant" == "x is an ancestor of end"; the first phase only removes nodes that are neither, so the set stays valid.
+      var endAncestors = new HashSet<OpenXmlElement>(end?.Ancestors() ?? Enumerable.Empty<OpenXmlElement>());
       OpenXmlElement lca = null, temp = null;
       bool isFirstParent = false;
       var currentNode = start;
       while (currentNode != null)
       {
-        if (currentNode == end || currentNode.Descendants().Any(n => n == end))
+        if (currentNode == end || endAncestors.Contains(currentNode))
         {
           lca = currentNode;
           break;
@@ -51,7 +53,7 @@ namespace WordTemplater
 
         while (currentNode != null)
         {
-          if (currentNode == end || currentNode.Descendants().Any(n => n == end))
+          if (currentNode == end || endAncestors.Contains(currentNode))
           {
             lca = currentNode;
             break;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -176,6 +177,9 @@ namespace WordTemplater
 
   internal class CurrencyEvaluator : IEvaluator
   {
+    // Culture lookup outcome per name (null = lookup threw), so an invalid name throws once instead of on every field.
+    private readonly ConcurrentDictionary<string, System.Globalization.CultureInfo?> _cultures = new ConcurrentDictionary<string, System.Globalization.CultureInfo?>();
+
     public string Evaluate(object fieldValue, List<object> parameters)
     {
       if (fieldValue == null) return string.Empty;
@@ -207,14 +211,11 @@ namespace WordTemplater
         var param0 = parameters[0]?.ToString()?.Trim();
         if (!string.IsNullOrEmpty(param0))
         {
-          try
-          {
-            culture = System.Globalization.CultureInfo.GetCultureInfo(param0);
-          }
-          catch
-          {
+          var found = _cultures.GetOrAdd(param0, Utils.TryGetCultureInfo);
+          if (found != null)
+            culture = found;
+          else
             customFormat = "{0:" + param0 + "}";
-          }
         }
       }
 
@@ -270,6 +271,9 @@ namespace WordTemplater
 
   internal class DateEvaluator : IEvaluator
   {
+    // Culture lookup outcome per name (null = lookup threw), so an invalid name throws once instead of on every field.
+    private readonly ConcurrentDictionary<string, System.Globalization.CultureInfo?> _cultures = new ConcurrentDictionary<string, System.Globalization.CultureInfo?>();
+
     public string Evaluate(object fieldValue, List<object> parameters)
     {
       if (fieldValue == null) return string.Empty;
@@ -303,7 +307,7 @@ namespace WordTemplater
         var cultureStr = parameters[1]?.ToString()?.Trim();
         if (!string.IsNullOrEmpty(cultureStr))
         {
-          try { culture = System.Globalization.CultureInfo.GetCultureInfo(cultureStr); } catch { }
+          culture = _cultures.GetOrAdd(cultureStr, Utils.TryGetCultureInfo) ?? culture;
         }
       }
 
@@ -313,6 +317,9 @@ namespace WordTemplater
 
   internal class NumberEvaluator : IEvaluator
   {
+    // Culture lookup outcome per name (null = lookup threw), so an invalid name throws once instead of on every field.
+    private readonly ConcurrentDictionary<string, System.Globalization.CultureInfo?> _cultures = new ConcurrentDictionary<string, System.Globalization.CultureInfo?>();
+
     public string Evaluate(object fieldValue, List<object> parameters)
     {
       if (fieldValue == null) return string.Empty;
@@ -345,7 +352,7 @@ namespace WordTemplater
         var cultureStr = parameters[1]?.ToString()?.Trim();
         if (!string.IsNullOrEmpty(cultureStr))
         {
-          try { culture = System.Globalization.CultureInfo.GetCultureInfo(cultureStr); } catch { }
+          culture = _cultures.GetOrAdd(cultureStr, Utils.TryGetCultureInfo) ?? culture;
         }
       }
 

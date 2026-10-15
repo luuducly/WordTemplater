@@ -555,7 +555,8 @@ namespace WordTemplater
           var firstIndex = allContexts.IndexOf(firstRC);
           if (firstIndex >= 0)
           {
-            var lastRC = rc;
+            // Item j always lands right after item j-1 (at pos + 1 + j); the recursive call below never modifies this list.
+            var pos = rc.Parent != null ? rc.Parent.ChildNodes.IndexOf(rc) : rootContexts.IndexOf(rc);
             for (int j = 0; j < arrData.Count; j++)
             {
               var ct = allContexts[j + firstIndex];
@@ -563,27 +564,13 @@ namespace WordTemplater
               if (rc.Parent != null)
               {
                 ct.Parent = rc.Parent;
-                var pos = rc.Parent.ChildNodes.IndexOf(lastRC);
                 if (pos > -1)
-                {
-                  if (pos < rc.Parent.ChildNodes.Count - 1)
-                    rc.Parent.ChildNodes.Insert(pos + 1, ct);
-                  else
-                    rc.Parent.ChildNodes.Add(ct);
-                  lastRC = ct;
-                }
+                  rc.Parent.ChildNodes.Insert(pos + 1 + j, ct);
               }
               else if (rc.Parent == null)
               {
-                var pos = rootContexts.IndexOf(lastRC);
                 if (pos > -1)
-                {
-                  if (pos < rootContexts.Count - 1)
-                    rootContexts.Insert(pos + 1, ct);
-                  else
-                    rootContexts.Add(ct);
-                  lastRC = ct;
-                }
+                  rootContexts.Insert(pos + 1 + j, ct);
               }
               var value = arrData[j];
               if (ct.ChildNodes.Count > 0)
@@ -611,8 +598,10 @@ namespace WordTemplater
       //find the ascendant of both start and end bookmark node
       var mfStart = context.MergeField.StartField.StartNode;
       OpenXmlElement parentNode = mfStart;
+      // "x has EndNode as a descendant" == "x is an ancestor of EndNode"; the DOM is not modified while this set is used.
+      var endAncestors = new HashSet<OpenXmlElement>(context.MergeField.EndField.EndNode?.Ancestors() ?? Enumerable.Empty<OpenXmlElement>());
 
-      while (parentNode.Parent != null && !parentNode.Parent.Descendants().Any(el => el == context.MergeField.EndField.EndNode))
+      while (parentNode.Parent != null && !endAncestors.Contains(parentNode.Parent))
       {
         parentNode = parentNode.Parent;
       }
@@ -629,7 +618,7 @@ namespace WordTemplater
           {
             if (tableParentNode is WP.Table || tableParentNode.Descendants<WP.Table>().Any()
                 || tableParentNode == context.MergeField.EndField.EndNode
-                || tableParentNode.Descendants().Any(el => context.MergeField.EndField.EndNode == el))
+                || endAncestors.Contains(tableParentNode))
               break;
             tableParentNode = tableParentNode.NextSibling();
           }
@@ -668,7 +657,7 @@ namespace WordTemplater
               lastChildNode = curentNode;
             }
 
-            if (curentNode == context.MergeField.EndField.EndNode || curentNode.Descendants().Any(el => context.MergeField.EndField.EndNode == el))
+            if (curentNode == context.MergeField.EndField.EndNode || endAncestors.Contains(curentNode))
             {
               endNode = curentNode;
               break;
@@ -680,7 +669,10 @@ namespace WordTemplater
         if (lastChildNode != null)
         {
           if (lastChildNode.NextSibling() != null)
+          {
             mfTemplate.LastNode = lastChildNode.NextSibling();
+            mfTemplate.InsertionAnchor = lastChildNode;
+          }
           mfTemplate.ParentNode = lastChildNode.Parent;
         }
       }

@@ -149,7 +149,7 @@ namespace WordTemplater
       }
       if (deleteParent && parentParagraph != null && parentParagraph.Parent != null && parentParagraph.InnerText.Trim() == string.Empty)
       {
-        if (parentParagraph.Parent.ChildElements.Count(c => c is Paragraph) > 1)
+        if (parentParagraph.Parent.Elements<Paragraph>().Skip(1).Any())
           parentParagraph.Remove();
       }
       _isRemoved = true;
@@ -220,6 +220,8 @@ namespace WordTemplater
   internal class RepeatingTemplate
   {
     internal OpenXmlElement LastNode;
+    // Always LastNode's previous sibling; clones go after it because InsertBeforeSelf is O(position) in OpenXml 2.x.
+    internal OpenXmlElement? InsertionAnchor;
     internal OpenXmlElement ParentNode;
     internal List<OpenXmlElement> TemplateElements;
 
@@ -236,7 +238,7 @@ namespace WordTemplater
         foreach (var el in cloneElements)
         {
           GenerateNewIdAndName(el);
-          LastNode.InsertBeforeSelf(el);
+          InsertionAnchor = InsertionAnchor!.InsertAfterSelf(el);
         }
       }
       else if (ParentNode != null)

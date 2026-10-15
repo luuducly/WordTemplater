@@ -8,7 +8,7 @@ using Microsoft.VisualBasic;
 
 namespace WordTemplater
 {
-  internal class Utils
+  internal partial class Utils
   {
     // Shared for the process lifetime to reuse connections; PooledConnectionLifetime picks up DNS changes.
     internal static readonly HttpClient HttpClient = new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2), UseCookies = false }) { Timeout = TimeSpan.FromSeconds(15) };
@@ -28,13 +28,14 @@ namespace WordTemplater
       return returnList;
     }
 
+    [GeneratedRegex(Constant.PARSER_PARAM_REGEX)]
+    private static partial Regex ParamRegex();
+
     public static List<string> ParseParameters(string input)
     {
       var parameters = new List<string>();
 
-      var regex = new Regex(Constant.PARSER_PARAM_REGEX);
-
-      var matches = regex.Matches(input);
+      var matches = ParamRegex().Matches(input);
       foreach (Match match in matches)
       {
         if (match.Groups[1].Success)
@@ -52,6 +53,13 @@ namespace WordTemplater
       }
 
       return parameters;
+    }
+
+    // null when CultureInfo.GetCultureInfo throws for the name.
+    internal static System.Globalization.CultureInfo? TryGetCultureInfo(string name)
+    {
+      try { return System.Globalization.CultureInfo.GetCultureInfo(name); }
+      catch { return null; }
     }
 
     internal static JToken? ResolveToken(JObject? data, string? path)

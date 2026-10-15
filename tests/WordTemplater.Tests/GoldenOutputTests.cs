@@ -85,6 +85,19 @@ namespace WordTemplater.Tests
             VerifySnapshot("Empty_LoopIf", TestTemplates.LoopIfTemplate(), () => TestTemplates.Data(0));
         }
 
+        [Fact]
+        public void TableWithFooter7()
+        {
+            VerifySnapshot("TableWithFooter7", TestTemplates.TableWithFooterTemplate(), () => TestTemplates.Data(7),
+                options: new ExportOptions { TableOddRowColor = "F0F0F0", TableEvenRowColor = "FFFFFF" });
+        }
+
+        [Fact]
+        public void NestedLoops4x3()
+        {
+            VerifySnapshot("NestedLoops4x3", TestTemplates.NestedLoopTemplate(), () => TestTemplates.NestedData(4, 3));
+        }
+
         private static void VerifySnapshot(string name, byte[] template, Func<JObject> data,
             Action<WordTemplate>? configure = null, ExportOptions? options = null)
         {

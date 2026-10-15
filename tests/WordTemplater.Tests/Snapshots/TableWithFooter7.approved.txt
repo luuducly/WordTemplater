@@ -1,0 +1,358 @@
+=== /word/document.xml ===
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">Report</w:t>
+      </w:r>
+    </w:p>
+    <w:tbl>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">No</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">Name</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">Qty</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">Price</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">1</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 0</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p />
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$0.00</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">2</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 1</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">1</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$1.50</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">3</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 2</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">2</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$3.00</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">4</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 3</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">3</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$4.50</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">5</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 4</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">4</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$6.00</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">6</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 5</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">5</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="F0F0F0" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$7.50</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">7</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">ITEM 6</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">6</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">$9.00</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve">Total</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p />
+        </w:tc>
+        <w:tc>
+          <w:p />
+        </w:tc>
+        <w:tc>
+          <w:p />
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">end</w:t>
+      </w:r>
+    </w:p>
+  </w:body>
+</w:document>
+=== relationships ===
+=== parts ===
+/word/document.xml application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml

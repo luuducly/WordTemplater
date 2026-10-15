@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -63,6 +64,61 @@ namespace WordTemplater.Tests
 
                 Assert.Equal(exports, Volatile.Read(ref requests));
                 Assert.Equal("/x.png", lastPath);
+            }
+            finally
+            {
+                listener.Stop();
+                listener.Close();
+                await server.WaitAsync(TimeSpan.FromSeconds(5));
+            }
+        }
+
+        [Fact]
+        public async Task Export_ImageFromHttpUrl_DoesNotSendCookiesFromEarlierExports()
+        {
+            var png = File.ReadAllBytes(TestPaths.Template("Rectangle.png"));
+            int port = FreeLoopbackPort();
+            int requests = 0;
+            var cookieHeaders = new ConcurrentQueue<string?>();
+
+            var listener = new HttpListener();
+            listener.Prefixes.Add($"http://localhost:{port}/");
+            listener.Start();
+            var server = Task.Run(async () =>
+            {
+                while (true)
+                {
+                    HttpListenerContext ctx;
+                    try
+                    {
+                        ctx = await listener.GetContextAsync();
+                    }
+                    catch (Exception) when (!listener.IsListening)
+                    {
+                        return;
+                    }
+                    cookieHeaders.Enqueue(ctx.Request.Headers["Cookie"]);
+                    if (Interlocked.Increment(ref requests) == 1)
+                        ctx.Response.AppendHeader("Set-Cookie", "sid=tenantA; Path=/");
+                    ctx.Response.ContentType = "image/png";
+                    ctx.Response.ContentLength64 = png.Length;
+                    ctx.Response.OutputStream.Write(png, 0, png.Length);
+                    ctx.Response.Close();
+                }
+            });
+
+            try
+            {
+                using var templateStream = new MemoryStream(TestTemplates.Build(TestTemplates.P(TestTemplates.F("Url:image()"))));
+                using var template = new WordTemplate(templateStream);
+                for (int i = 0; i < 2; i++)
+                {
+                    using var output = template.Export(new { Url = $"http://localhost:{port}/x.png" });
+                    Assert.NotNull(output);
+                }
+
+                Assert.Equal(2, Volatile.Read(ref requests));
+                Assert.Null(cookieHeaders.ElementAt(1));
             }
             finally
             {

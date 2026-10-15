@@ -63,6 +63,55 @@ namespace WordTemplater.Tests
         }
 
         /// <summary>
+        /// Like <see cref="TableTemplate"/>, but the table also has a plain-text footer row after the template row,
+        /// so the repeated rows are inserted before an existing row.
+        /// </summary>
+        public static byte[] TableWithFooterTemplate()
+        {
+            var header = new TableRow(
+                new TableCell(P(T("No"))),
+                new TableCell(P(T("Name"))),
+                new TableCell(P(T("Qty"))),
+                new TableCell(P(T("Price"))));
+            var row = new TableRow(
+                new TableCell(P(F("_index"))),
+                new TableCell(P(F("Name:upper()"))),
+                new TableCell(P(F("Qty:number(#,##0)"))),
+                new TableCell(P(F("Price:currency(en-US)"))));
+            var footer = new TableRow(
+                new TableCell(P(T("Total"))),
+                new TableCell(P()),
+                new TableCell(P()),
+                new TableCell(P()));
+            return Build(
+                P(F("Title")),
+                P(F("table(Items)")),
+                new Table(header, row, footer),
+                P(F("endtable")),
+                P(T("end")));
+        }
+
+        /// <summary>
+        /// Paragraph loop over Groups containing a paragraph loop over Items with a nested if(Qty &gt; 5) block.
+        /// </summary>
+        public static byte[] NestedLoopTemplate()
+        {
+            return Build(
+                P(F("Title")),
+                P(F("loop(Groups)")),
+                P(F("Name")),
+                P(F("loop(Items)")),
+                P(F("_index"), T(". "), F("Name")),
+                P(F("if(Qty > 5)")),
+                P(T("big: "), F("Qty")),
+                P(F("endif")),
+                P(F("endloop")),
+                P(T("after inner")),
+                P(F("endloop")),
+                P(T("end")));
+        }
+
+        /// <summary>
         /// Paragraph loop over Items with a nested if(Qty &gt; 5) block.
         /// </summary>
         public static byte[] LoopIfTemplate()
@@ -110,6 +159,41 @@ namespace WordTemplater.Tests
             {
                 ["Title"] = "Report",
                 ["Items"] = items
+            };
+        }
+
+        /// <summary>
+        /// Data for <see cref="NestedLoopTemplate"/>: Groups[g] = { Name, Items[itemsPerGroup] }; group 1 (if any) has no items.
+        /// </summary>
+        public static JObject NestedData(int groups, int itemsPerGroup)
+        {
+            var groupArray = new JArray();
+            for (int g = 0; g < groups; g++)
+            {
+                var items = new JArray();
+                if (g != 1)
+                {
+                    for (int i = 0; i < itemsPerGroup; i++)
+                    {
+                        var n = g * itemsPerGroup + i;
+                        items.Add(new JObject
+                        {
+                            ["Name"] = "item " + g + "." + i,
+                            ["Qty"] = n % 10,
+                            ["Price"] = n * 1.5m
+                        });
+                    }
+                }
+                groupArray.Add(new JObject
+                {
+                    ["Name"] = "group " + g,
+                    ["Items"] = items
+                });
+            }
+            return new JObject
+            {
+                ["Title"] = "Report",
+                ["Groups"] = groupArray
             };
         }
     }

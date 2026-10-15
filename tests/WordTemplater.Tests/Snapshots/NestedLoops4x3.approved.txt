@@ -1,0 +1,189 @@
+=== /word/document.xml ===
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">Report</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">group 0</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">1</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 0.0</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">2</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 0.1</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">3</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 0.2</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">after inner</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">group 1</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">after inner</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">group 2</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">1</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 2.0</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">big: </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">6</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">2</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 2.1</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">big: </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">7</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">3</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 2.2</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">big: </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">8</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">after inner</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">group 3</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">1</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 3.0</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">big: </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">9</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">2</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 3.1</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">3</w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">. </w:t>
+      </w:r>
+      <w:r>
+        <w:t xml:space="preserve">item 3.2</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">after inner</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t xml:space="preserve">end</w:t>
+      </w:r>
+    </w:p>
+  </w:body>
+</w:document>
+=== relationships ===
+=== parts ===
+/word/document.xml application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml

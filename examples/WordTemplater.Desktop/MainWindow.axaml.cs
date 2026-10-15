@@ -309,6 +309,30 @@ public partial class MainWindow : Window
         }
     }
 
+    private static SimpleField F(string code) =>
+        new SimpleField(new Run(new Text("«" + code + "»"))) { Instruction = " MERGEFIELD  " + code + "  \\* MERGEFORMAT " };
+
+    private static Run T(string text, bool bold = false, string? color = null, string? size = null)
+    {
+        var runProps = new RunProperties();
+        if (bold) runProps.Append(new Bold());
+        if (!string.IsNullOrEmpty(color)) runProps.Append(new Color { Val = color });
+        if (!string.IsNullOrEmpty(size)) runProps.Append(new FontSize { Val = size });
+        return new Run(runProps, new Text(text) { Space = SpaceProcessingModeValues.Preserve });
+    }
+
+    private static Paragraph P(params OpenXmlElement[] children) => new Paragraph(children);
+
+    private static TableCell C(OpenXmlElement content, string? bgColor = null)
+    {
+        var cell = new TableCell(content);
+        if (!string.IsNullOrEmpty(bgColor))
+        {
+            cell.Append(new TableCellProperties(new Shading { Val = ShadingPatternValues.Clear, Color = "auto", Fill = bgColor }));
+        }
+        return cell;
+    }
+
     private byte[] GetTemplateBytes()
     {
         string tag = (ComboTemplates.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "invoice";
@@ -325,145 +349,89 @@ public partial class MainWindow : Window
 
         if (tag == "invoice")
         {
-            string builtInPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "InvoiceTemplate.docx");
-            if (File.Exists(builtInPath))
-            {
-                return File.ReadAllBytes(builtInPath);
-            }
-
-            // Programmatic fallback template
-            return BuildInvoiceTemplateInMemory();
+            return BuildInvoiceTemplate();
         }
 
-        // Employee template
-        return BuildEmployeeTemplateInMemory();
+        return BuildEmployeeTemplate();
     }
 
-    private byte[] BuildInvoiceTemplateInMemory()
+    public static byte[] BuildInvoiceTemplate()
     {
         using var ms = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(ms, WordprocessingDocumentType.Document))
         {
             var main = doc.AddMainDocumentPart();
-            var body = new Body();
-
-            // Heading
-            var headingRunProps = new RunProperties(new Bold(), new FontSize { Val = "36" }, new Color { Val = "1E293B" });
-            body.Append(new Paragraph(new Run(headingRunProps, new Text("COMMERCIAL INVOICE") { Space = SpaceProcessingModeValues.Preserve })));
-
-            body.Append(new Paragraph(new Run(new Text("Invoice #: «InvoiceNumber»  |  Date: «date(Date, 'dd/MM/yyyy')»"))));
-            body.Append(new Paragraph(new Run(new Text("Customer: «Customer.Name» (City: «Customer.Address.City», «Customer.Address.Country»)"))));
-            body.Append(new Paragraph());
-
-            // Repeating Table
-            var table = new Table();
-            var tblPr = new TableProperties(new TableBorders(
-                new TopBorder { Val = BorderValues.Single, Size = 4, Color = "CBD5E1" },
-                new BottomBorder { Val = BorderValues.Single, Size = 4, Color = "CBD5E1" },
-                new InsideHorizontalBorder { Val = BorderValues.Single, Size = 4, Color = "E2E8F0" }
-            ));
-            table.Append(tblPr);
-
-            // Header row
-            var headerRow = new TableRow(
-                CreateCell("No.", true, "1E293B", "F8FAFC"),
-                CreateCell("Description", true, "1E293B", "F8FAFC"),
-                CreateCell("Qty", true, "1E293B", "F8FAFC"),
-                CreateCell("Price", true, "1E293B", "F8FAFC")
+            var header = new TableRow(
+                C(P(T("No.", true, "1E293B")), bgColor: "F8FAFC"),
+                C(P(T("Description", true, "1E293B")), bgColor: "F8FAFC"),
+                C(P(T("Qty", true, "1E293B")), bgColor: "F8FAFC"),
+                C(P(T("Unit Price", true, "1E293B")), bgColor: "F8FAFC")
             );
-            table.Append(headerRow);
-
-            // Template row
-            var dataRow = new TableRow(
-                CreateCell("«table(Items)»«_index»"),
-                CreateCell("«Description»"),
-                CreateCell("«Qty»"),
-                CreateCell("«currency(Price, 'en-US')»«endtable»")
+            var row = new TableRow(
+                C(P(F("_index"))),
+                C(P(F("Description:upper()"))),
+                C(P(F("Qty:number(#,##0)"))),
+                C(P(F("Price:currency(en-US)")))
             );
-            table.Append(dataRow);
 
-            body.Append(table);
-            body.Append(new Paragraph());
-
-            var totalRunProps = new RunProperties(new Bold());
-            body.Append(new Paragraph(new Run(totalRunProps, new Text("Total Amount: «currency(Total, 'en-US')»"))));
-            body.Append(new Paragraph(new Run(new Text("Note: «Note»"))));
-
+            var body = new Body(
+                P(T("COMMERCIAL INVOICE", true, "1E293B", "36")),
+                P(T("Invoice Number: ", true), F("InvoiceNumber"), T("  |  Date: ", true), F("Date")),
+                P(T("Customer: ", true), F("Customer.Name"), T("  |  Location: ", true), F("Customer.Address.City"), T(", "), F("Customer.Address.Country")),
+                P(),
+                P(F("table(Items)")),
+                new Table(header, row),
+                P(F("endtable")),
+                P(),
+                P(T("Total Amount: ", true, "0F172A", "24"), F("Total:currency(en-US)")),
+                P(T("Payment Note: ", true), F("Note"))
+            );
             main.Document = new Document(body);
         }
         return ms.ToArray();
     }
 
-    private byte[] BuildEmployeeTemplateInMemory()
+    public static byte[] BuildEmployeeTemplate()
     {
         using var ms = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(ms, WordprocessingDocumentType.Document))
         {
             var main = doc.AddMainDocumentPart();
-            var body = new Body();
+            var header = new TableRow(
+                C(P(T("#", true, "0F172A")), bgColor: "F1F5F9"),
+                C(P(T("Skill", true, "0F172A")), bgColor: "F1F5F9"),
+                C(P(T("Proficiency", true, "0F172A")), bgColor: "F1F5F9"),
+                C(P(T("Experience (Yrs)", true, "0F172A")), bgColor: "F1F5F9")
+            );
+            var row = new TableRow(
+                C(P(F("_index"))),
+                C(P(F("Name"))),
+                C(P(F("Level:upper()"))),
+                C(P(F("Years:number(#,##0)")))
+            );
 
-            var titleProps = new RunProperties(new Bold(), new FontSize { Val = "32" }, new Color { Val = "0F172A" });
-            body.Append(new Paragraph(new Run(titleProps, new Text("«Title»") { Space = SpaceProcessingModeValues.Preserve })));
-
-            body.Append(new Paragraph(new Run(new Text("Date: «date(Date, 'MMMM dd, yyyy')»"))));
-            body.Append(new Paragraph());
-            body.Append(new Paragraph(new Run(new Text("Employee Code: «Employee.Code»  |  Name: «upper(Employee.Name)»"))));
-            body.Append(new Paragraph(new Run(new Text("Department: «Employee.Department»"))));
-            body.Append(new Paragraph(new Run(new Text("Role: «Employee.Title»"))));
-            body.Append(new Paragraph(new Run(new Text("Monthly Salary: «currency(Employee.Salary, 'vi-VN')»"))));
-            body.Append(new Paragraph(new Run(new Text("Join Date: «date(Employee.JoinDate, 'dd/MM/yyyy')»"))));
-            body.Append(new Paragraph(new Run(new Text("Office: «Employee.Address.Street», «Employee.Address.City», «Employee.Address.Country»"))));
-            body.Append(new Paragraph());
-
-            var compProps = new RunProperties(new Bold());
-            body.Append(new Paragraph(new Run(compProps, new Text("Key Competencies:"))));
-
-            var table = new Table();
-            table.Append(new TableProperties(new TableBorders(
-                new TopBorder { Val = BorderValues.Single, Size = 4, Color = "94A3B8" },
-                new BottomBorder { Val = BorderValues.Single, Size = 4, Color = "94A3B8" },
-                new InsideHorizontalBorder { Val = BorderValues.Single, Size = 4, Color = "CBD5E1" }
-            )));
-
-            table.Append(new TableRow(
-                CreateCell("#", true, "0F172A", "F1F5F9"),
-                CreateCell("Skill", true, "0F172A", "F1F5F9"),
-                CreateCell("Proficiency", true, "0F172A", "F1F5F9"),
-                CreateCell("Experience (Yrs)", true, "0F172A", "F1F5F9")
-            ));
-
-            table.Append(new TableRow(
-                CreateCell("«table(Skills)»«_index»"),
-                CreateCell("«Name»"),
-                CreateCell("«Level»"),
-                CreateCell("«Years»«endtable»")
-            ));
-
-            body.Append(table);
-            body.Append(new Paragraph());
-            body.Append(new Paragraph(new Run(new Text("Performance Summary: «Summary»"))));
-            body.Append(new Paragraph(new Run(new Text("Bonus Eligibility: «if(IsEligibleForBonus, 'YES - Approved', 'NO')»"))));
-
+            var body = new Body(
+                P(T("EMPLOYEE PERFORMANCE EVALUATION", true, "0F172A", "32")),
+                P(T("Evaluation Date: ", true), F("Date")),
+                P(),
+                P(T("Employee Code: ", true), F("Employee.Code"), T("  |  Full Name: ", true), F("Employee.Name:upper()")),
+                P(T("Department: ", true), F("Employee.Department")),
+                P(T("Role / Title: ", true), F("Employee.Title")),
+                P(T("Monthly Salary: ", true), F("Employee.Salary:currency(vi-VN)")),
+                P(T("Join Date: ", true), F("Employee.JoinDate")),
+                P(T("Office Location: ", true), F("Employee.Address.Street"), T(", "), F("Employee.Address.City"), T(", "), F("Employee.Address.Country")),
+                P(),
+                P(T("Technical Competencies:", true, "0F172A", "22")),
+                P(F("table(Skills)")),
+                new Table(header, row),
+                P(F("endtable")),
+                P(),
+                P(T("Performance Review: ", true), F("Summary")),
+                P(T("Bonus Recommendation: ", true), F("if(IsEligibleForBonus, 'APPROVED - Performance Bonus Awarded', 'NOT ELIGIBLE')"))
+            );
             main.Document = new Document(body);
         }
         return ms.ToArray();
-    }
-
-    private static TableCell CreateCell(string text, bool bold = false, string color = "000000", string? bgColor = null)
-    {
-        var runProps = new RunProperties();
-        if (bold) runProps.Append(new Bold());
-        if (!string.IsNullOrEmpty(color)) runProps.Append(new Color { Val = color });
-
-        var p = new Paragraph(new Run(runProps, new Text(text) { Space = SpaceProcessingModeValues.Preserve }));
-        var cell = new TableCell(p);
-
-        if (!string.IsNullOrEmpty(bgColor))
-        {
-            cell.Append(new TableCellProperties(new Shading { Val = ShadingPatternValues.Clear, Color = "auto", Fill = bgColor }));
-        }
-
-        return cell;
     }
 
     private void OnOpenFileClick(object? sender, RoutedEventArgs e)

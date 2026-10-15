@@ -1,0 +1,29 @@
+name: Test
+
+# Run the test suite on every push to main and on pull requests
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Setup .NET SDKs/runtimes for every target framework of the library
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      # Step 3: Run the tests on net8.0, net9.0 and net10.0
+      - name: Test
+        run: dotnet test tests/WordTemplater.Tests -c Release -p:TestAllFrameworks=true
